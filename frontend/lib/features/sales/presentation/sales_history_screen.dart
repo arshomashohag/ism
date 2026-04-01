@@ -230,7 +230,7 @@ class _SaleCard extends StatelessWidget {
                           .bodySmall
                           ?.copyWith(
                             color: cs.onSurface
-                                .withOpacity(0.55),
+                                .withValues(alpha: 0.55),
                           ),
                     ),
                     if (item.salesmanName != null ||
@@ -247,7 +247,7 @@ class _SaleCard extends StatelessWidget {
                             .bodySmall
                             ?.copyWith(
                               color: cs.onSurface
-                                  .withOpacity(0.45),
+                                  .withValues(alpha: 0.45),
                             ),
                       ),
                   ],
@@ -266,7 +266,7 @@ class _SaleCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isVoided
                               ? cs.onSurface
-                                  .withOpacity(0.4)
+                                  .withValues(alpha: 0.4)
                               : cs.primary,
                           decoration: isVoided
                               ? TextDecoration.lineThrough
@@ -281,7 +281,7 @@ class _SaleCard extends StatelessWidget {
                         .bodySmall
                         ?.copyWith(
                           color: cs.onSurface
-                              .withOpacity(0.45),
+                              .withValues(alpha: 0.45),
                         ),
                   ),
                 ],

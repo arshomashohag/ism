@@ -39,7 +39,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: cs.outline.withOpacity(0.15),
+            color: cs.outline.withValues(alpha: 0.15),
           ),
         ),
       ),
@@ -49,13 +49,13 @@ class AppTheme {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: cs.outline.withOpacity(0.3),
+            color: cs.outline.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: cs.outline.withOpacity(0.3),
+            color: cs.outline.withValues(alpha: 0.3),
           ),
         ),
         contentPadding: const EdgeInsets.symmetric(

@@ -58,7 +58,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                   width: 1,
                   thickness: 1,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 340,
                   child: _CartPanel(),
                 ),
@@ -413,7 +413,7 @@ class _CartLineItem extends ConsumerWidget {
                       .bodySmall
                       ?.copyWith(
                         color: cs.onSurface
-                            .withOpacity(0.55),
+                            .withValues(alpha: 0.55),
                       ),
                 ),
               ],
@@ -533,7 +533,7 @@ class _CartTotals extends StatelessWidget {
       child: Column(
         children: [
           Divider(
-            color: cs.outline.withOpacity(0.2),
+            color: cs.outline.withValues(alpha: 0.2),
           ),
           _TotalsRow(
             label: 'Subtotal',
@@ -692,7 +692,7 @@ class _WarehouseDropdown extends ConsumerWidget {
         ref.watch(cartProvider.select((s) => s.warehouseId));
 
     return DropdownButtonFormField<String>(
-      value: selectedId,
+      initialValue: selectedId,
       decoration: const InputDecoration(
         labelText: 'Warehouse',
         prefixIcon: Icon(Icons.warehouse_outlined),

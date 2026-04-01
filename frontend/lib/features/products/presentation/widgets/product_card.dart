@@ -105,7 +105,7 @@ class ProductCard extends StatelessWidget {
                     Text(
                       'Cost \$${product.costPrice!.toStringAsFixed(2)}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurface.withOpacity(0.45),
+                        color: cs.onSurface.withValues(alpha: 0.45),
                       ),
                     ),
                 ],
@@ -113,7 +113,7 @@ class ProductCard extends StatelessWidget {
               const SizedBox(width: 4),
               Icon(
                 Icons.chevron_right,
-                color: cs.onSurface.withOpacity(0.3),
+                color: cs.onSurface.withValues(alpha: 0.3),
               ),
             ],
           ),
@@ -149,7 +149,7 @@ class _Chip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: textColor ?? cs.onSurface.withOpacity(0.65),
+              color: textColor ?? cs.onSurface.withValues(alpha: 0.65),
             ),
       ),
     );

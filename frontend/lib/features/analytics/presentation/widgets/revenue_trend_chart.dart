@@ -30,7 +30,7 @@ class RevenueTrendChart extends StatelessWidget {
           child: Text(
             'No data for this period',
             style: tt.bodyMedium?.copyWith(
-              color: cs.onSurface.withOpacity(0.5),
+              color: cs.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -60,7 +60,7 @@ class RevenueTrendChart extends StatelessWidget {
                 ? (maxY * 1.2) / 4
                 : 1,
             getDrawingHorizontalLine: (_) => FlLine(
-              color: cs.outline.withOpacity(0.2),
+              color: cs.outline.withValues(alpha: 0.2),
               strokeWidth: 1,
             ),
           ),
@@ -74,7 +74,7 @@ class RevenueTrendChart extends StatelessWidget {
                   _formatCompact(value),
                   style: tt.labelSmall?.copyWith(
                     color: cs.onSurface
-                        .withOpacity(0.55),
+                        .withValues(alpha: 0.55),
                   ),
                 ),
               ),
@@ -103,7 +103,7 @@ class RevenueTrendChart extends StatelessWidget {
                           points[idx].saleDate),
                       style: tt.labelSmall?.copyWith(
                         color: cs.onSurface
-                            .withOpacity(0.55),
+                            .withValues(alpha: 0.55),
                       ),
                     ),
                   );
@@ -141,7 +141,7 @@ class RevenueTrendChart extends StatelessWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: cs.primary.withOpacity(0.1),
+                color: cs.primary.withValues(alpha: 0.1),
               ),
             ),
           ],

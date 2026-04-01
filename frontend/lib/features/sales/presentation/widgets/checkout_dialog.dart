@@ -4,7 +4,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/sale.dart';
 import '../../providers/sales_provider.dart';
 
 /// Modal dialog to finalise a cart into a sale.

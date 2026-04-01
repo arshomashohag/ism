@@ -195,7 +195,7 @@ class _PriceCard extends StatelessWidget {
                         .textTheme
                         .bodySmall
                         ?.copyWith(
-                          color: cs.onSurface.withOpacity(0.55),
+                          color: cs.onSurface.withValues(alpha: 0.55),
                         ),
                   ),
                 ],
@@ -220,7 +220,7 @@ class _PriceCard extends StatelessWidget {
                       .textTheme
                       .labelSmall
                       ?.copyWith(
-                        color: cs.onSurface.withOpacity(0.45),
+                        color: cs.onSurface.withValues(alpha: 0.45),
                       ),
                 ),
               ],
@@ -284,7 +284,7 @@ class _DetailsCard extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .outline
-                      .withOpacity(0.15),
+                      .withValues(alpha: 0.15),
                 ),
             ],
           ],
@@ -321,7 +321,7 @@ class _DetailRow extends StatelessWidget {
             row.label,
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurface.withOpacity(0.55),
+                      color: cs.onSurface.withValues(alpha: 0.55),
                     ),
           ),
           const Spacer(),
@@ -361,7 +361,7 @@ class _InventorySummaryCard extends StatelessWidget {
               'STOCK LEVELS',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: cs.onSurface.withOpacity(0.6),
+                color: cs.onSurface.withValues(alpha: 0.6),
                 letterSpacing: 0.5,
               ),
             ),
@@ -392,7 +392,7 @@ class _InventorySummaryCard extends StatelessWidget {
               if (items.last != item)
                 Divider(
                   height: 16,
-                  color: cs.outline.withOpacity(0.15),
+                  color: cs.outline.withValues(alpha: 0.15),
                 ),
             ],
           ],
