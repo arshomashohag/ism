@@ -1,0 +1,14 @@
+# Copy to backend.tf and fill in your values, then run:
+#   terraform init
+#
+# NEVER commit backend.tf — it contains account-specific details.
+
+terraform {
+  backend "s3" {
+    bucket         = "ims-terraform-state-<your-account-id>"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "ims-terraform-locks"
+    encrypt        = true
+  }
+}
