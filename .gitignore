@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ruff
+.ruff_cache/
+
+# Alembic (keep versions, ignore compiled)
+backend/alembic/__pycache__/
+
+# Flutter
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/build/
+frontend/pubspec.lock
+*.iml
+
+# Dart / pub cache
+.pub-cache/
+.pub/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+terraform/.terraform.lock.hcl
+**/*.tfplan
+terraform/environments/dev/backend.tf
+!terraform/environments/dev/backend.tf.example
+crash.log
+crash.*.log
+
+# Docker
+docker-compose.override.yml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets / credentials
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
