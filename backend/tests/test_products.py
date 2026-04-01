@@ -194,7 +194,14 @@ def _build_db(
     """
     db = MagicMock()
     fq = FakeQuery(query_result, all_results, count)
-    db.query.return_value = fq
+    empty_fq = FakeQuery()
+
+    def _query_side_effect(model: Any, *_: Any) -> FakeQuery:
+        from app.models.inventory import Inventory as Inv
+
+        return empty_fq if model is Inv else fq
+
+    db.query.side_effect = _query_side_effect
     db.get.return_value = get_result
     db.add = MagicMock()
     db.flush = MagicMock()
