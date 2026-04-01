@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-test-backend:
+    name: Lint & Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ism/backend/requirements.txt
+
+      - name: Install dependencies
+        working-directory: ism/backend
+        run: pip install -r requirements.txt ruff
+
+      - name: Lint with ruff
+        working-directory: ism/backend
+        run: ruff check app/
+
+      - name: Run tests
+        working-directory: ism/backend
+        run: pytest tests/ -v
+
+  lint-flutter:
+    name: Lint & Test Flutter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        working-directory: ism/frontend
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: ism/frontend
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: ism/frontend
+        run: flutter test
