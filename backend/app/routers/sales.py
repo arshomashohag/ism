@@ -17,13 +17,13 @@ from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.auth import CurrentUser
 from app.schemas.sales import (
+    PaymentResponse,
     SaleCreate,
+    SaleLineItemResponse,
     SaleListItem,
     SaleListResponse,
     SaleResponse,
     SalesSummary,
-    SaleLineItemResponse,
-    PaymentResponse,
     TopProduct,
 )
 from app.services.audit import AuditService
