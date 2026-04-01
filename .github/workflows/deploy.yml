@@ -8,9 +8,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  TF_WORKING_DIR: ism/terraform/environments/dev
-  BACKEND_DIR: ism/backend
-  FRONTEND_DIR: ism/frontend
+  TF_WORKING_DIR: terraform/environments/dev
+  BACKEND_DIR: backend
+  FRONTEND_DIR: frontend
 
 jobs:
   # ── Terraform Plan (PRs only) ───────────────────────────────
