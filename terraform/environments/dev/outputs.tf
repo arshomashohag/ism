@@ -43,3 +43,23 @@ output "db_address" {
   value       = module.data.db_address
   sensitive   = true
 }
+
+output "ecr_repository_name" {
+  description = "ECR repository name (GitHub secret: ECR_REPOSITORY_NAME)"
+  value       = module.compute.ecr_repository_name
+}
+
+output "migration_task_definition_name" {
+  description = "Migration task definition name (GitHub secret: MIGRATION_TASK_DEFINITION)"
+  value       = split(":", module.compute.migration_task_definition_arn)[5]
+}
+
+output "private_subnet_ids" {
+  description = "Comma-separated private subnet IDs (GitHub secret: ECS_PRIVATE_SUBNET_IDS)"
+  value       = join(",", module.networking.private_subnet_ids)
+}
+
+output "ecs_task_sg_id" {
+  description = "ECS tasks security group ID (GitHub secret: ECS_TASK_SG_ID)"
+  value       = module.networking.ecs_tasks_sg_id
+}

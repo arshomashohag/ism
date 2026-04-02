@@ -26,8 +26,9 @@ resource "aws_db_parameter_group" "postgres16" {
   family = "postgres16"
 
   parameter {
-    name  = "shared_preload_libraries"
-    value = "pg_stat_statements"
+    name         = "shared_preload_libraries"
+    value        = "pg_stat_statements"
+    apply_method = "pending-reboot"
   }
 
   tags = { Name = "${local.name_prefix}-postgres16" }
