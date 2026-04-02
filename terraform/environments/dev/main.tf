@@ -11,16 +11,6 @@ terraform {
       version = "~> 3.6"
     }
   }
-
-  backend "s3" {
-    # Configure via CLI: terraform init -backend-config="bucket=<state-bucket>"
-    # or set in terraform.tfvars / environment variables.
-    # bucket         = "ims-terraform-state-<account-id>"
-    # key            = "dev/terraform.tfstate"
-    # region         = "us-east-1"
-    # dynamodb_table = "ims-terraform-locks"
-    # encrypt        = true
-  }
 }
 
 provider "aws" {
