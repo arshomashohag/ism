@@ -51,7 +51,7 @@ output "ecr_repository_name" {
 
 output "migration_task_definition_name" {
   description = "Migration task definition name (GitHub secret: MIGRATION_TASK_DEFINITION)"
-  value       = split(":", module.compute.migration_task_definition_arn)[5]
+  value       = split("/", split(":", module.compute.migration_task_definition_arn)[5])[1]
 }
 
 output "private_subnet_ids" {
