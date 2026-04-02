@@ -29,11 +29,11 @@ jobs:
                 "${{ github.base_ref }}" == "main" ]]; then
             echo "env_name=production"   >> "$GITHUB_OUTPUT"
             echo "tf_dir=terraform/environments/production" >> "$GITHUB_OUTPUT"
-            echo "tf_state_key=production/terraform.tfstate" >> "$GITHUB_OUTPUT"
+            echo "tf_state_key=terraform.tfstate" >> "$GITHUB_OUTPUT"
           else
             echo "env_name=development"  >> "$GITHUB_OUTPUT"
             echo "tf_dir=terraform/environments/dev" >> "$GITHUB_OUTPUT"
-            echo "tf_state_key=dev/terraform.tfstate" >> "$GITHUB_OUTPUT"
+            echo "tf_state_key=terraform.tfstate" >> "$GITHUB_OUTPUT"
           fi
 
   # ── Terraform Plan (PRs only) ───────────────────────────────
