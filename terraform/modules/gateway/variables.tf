@@ -48,3 +48,13 @@ variable "api_domain" {
   description = "Custom domain for the backend API (e.g. imsdevapi.carewarebd.com)"
   type        = string
 }
+
+variable "ui_certificate_arn" {
+  description = "ACM certificate ARN for the UI domain (must be in us-east-1 for CloudFront)"
+  type        = string
+}
+
+variable "api_certificate_arn" {
+  description = "ACM certificate ARN for the API domain (must be in the ALB region)"
+  type        = string
+}

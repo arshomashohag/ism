@@ -32,6 +32,8 @@ Runs on PR to `main` (plan only) and push to `main` (full deploy):
 | `ECS_PRIVATE_SUBNET_IDS` | Comma-separated private subnet IDs for ECS tasks |
 | `ECS_TASK_SG_ID` | Security group ID for ECS tasks |
 | `BACKEND_URL` | Full HTTPS URL for the backend API (e.g. `https://imsdevapi.carewarebd.com`) |
+| `UI_CERTIFICATE_ARN` | ACM certificate ARN for the UI domain (from root account, us-east-1) |
+| `API_CERTIFICATE_ARN` | ACM certificate ARN for the API domain (from root account, us-east-1) |
 | `FRONTEND_BUCKET_NAME` | S3 bucket name for Flutter web build |
 | `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution ID for cache invalidation |
 

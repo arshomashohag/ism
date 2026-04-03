@@ -2,38 +2,6 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# ── ACM Certificates ──────────────────────────────────────────
-
-resource "aws_acm_certificate" "api" {
-  domain_name               = var.api_domain
-  validation_method         = "DNS"
-
-  tags = { Name = "${local.name_prefix}-api-cert" }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_acm_certificate" "ui" {
-  domain_name               = var.ui_domain
-  validation_method         = "DNS"
-
-  tags = { Name = "${local.name_prefix}-ui-cert" }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_acm_certificate_validation" "api" {
-  certificate_arn = aws_acm_certificate.api.arn
-}
-
-resource "aws_acm_certificate_validation" "ui" {
-  certificate_arn = aws_acm_certificate.ui.arn
-}
-
 # ── Application Load Balancer ─────────────────────────────────
 
 resource "aws_lb" "main" {
@@ -94,7 +62,7 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate_validation.api.certificate_arn
+  certificate_arn   = var.api_certificate_arn
 
   default_action {
     type             = "forward"
@@ -161,7 +129,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.ui.certificate_arn
+    acm_certificate_arn      = var.ui_certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

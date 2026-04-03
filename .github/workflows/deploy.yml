@@ -84,6 +84,8 @@ jobs:
           set -o pipefail
           terraform plan \
             -var="image_tag=${{ github.sha }}" \
+            -var="ui_certificate_arn=${{ secrets.UI_CERTIFICATE_ARN }}" \
+            -var="api_certificate_arn=${{ secrets.API_CERTIFICATE_ARN }}" \
             -out=tfplan \
             -no-color 2>&1 | tee plan_output.txt
 

@@ -79,3 +79,13 @@ variable "api_domain" {
   type        = string
   default     = "imsdevapi.carewarebd.com"
 }
+
+variable "ui_certificate_arn" {
+  description = "ACM certificate ARN for the UI domain (from root account, us-east-1)"
+  type        = string
+}
+
+variable "api_certificate_arn" {
+  description = "ACM certificate ARN for the API domain (from root account, us-east-1)"
+  type        = string
+}

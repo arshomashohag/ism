@@ -68,6 +68,8 @@ module "gateway" {
   frontend_bucket_name = module.data.frontend_bucket_name
   ui_domain            = var.ui_domain
   api_domain           = var.api_domain
+  ui_certificate_arn   = var.ui_certificate_arn
+  api_certificate_arn  = var.api_certificate_arn
 }
 
 # ── Compute (ECS Fargate) ─────────────────────────────────────
