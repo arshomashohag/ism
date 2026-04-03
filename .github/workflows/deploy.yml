@@ -250,23 +250,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Run Alembic migration ECS task
+        env:
+          IMAGE_URI: ${{ needs.build-backend.outputs.image_uri }}
         run: |
-          IMAGE_URI="${{ needs.build-backend.outputs.image_uri }}"
+          echo "Image URI: $IMAGE_URI"
 
           NEW_TASK_DEF=$(aws ecs describe-task-definition \
             --task-definition "${{ secrets.MIGRATION_TASK_DEFINITION }}" \
             --query 'taskDefinition' \
             --output json \
-            | IMAGE_URI="$IMAGE_URI" python3 -c "
-          import sys, json, os
-          td = json.load(sys.stdin)
-          td['containerDefinitions'][0]['image'] = os.environ['IMAGE_URI']
-          for key in ['taskDefinitionArn','revision','status',
-                      'requiresAttributes','compatibilities',
-                      'registeredAt','registeredBy']:
-              td.pop(key, None)
-          print(json.dumps(td))
-          ")
+            | jq --arg img "$IMAGE_URI" '
+                .containerDefinitions[0].image = $img
+                | del(.taskDefinitionArn, .revision, .status,
+                      .requiresAttributes, .compatibilities,
+                      .registeredAt, .registeredBy)
+              ')
 
           MIGRATION_TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json "$NEW_TASK_DEF" \
@@ -321,23 +319,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Register new task definition revision and update service
+        env:
+          IMAGE_URI: ${{ needs.build-backend.outputs.image_uri }}
         run: |
-          IMAGE_URI="${{ needs.build-backend.outputs.image_uri }}"
+          echo "Image URI: $IMAGE_URI"
 
           NEW_TASK_DEF=$(aws ecs describe-task-definition \
             --task-definition "${{ secrets.ECS_BACKEND_TASK_DEFINITION }}" \
             --query 'taskDefinition' \
             --output json \
-            | IMAGE_URI="$IMAGE_URI" python3 -c "
-          import sys, json, os
-          td = json.load(sys.stdin)
-          td['containerDefinitions'][0]['image'] = os.environ['IMAGE_URI']
-          for key in ['taskDefinitionArn','revision','status',
-                      'requiresAttributes','compatibilities',
-                      'registeredAt','registeredBy']:
-              td.pop(key, None)
-          print(json.dumps(td))
-          ")
+            | jq --arg img "$IMAGE_URI" '
+                .containerDefinitions[0].image = $img
+                | del(.taskDefinitionArn, .revision, .status,
+                      .requiresAttributes, .compatibilities,
+                      .registeredAt, .registeredBy)
+              ')
 
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json "$NEW_TASK_DEF" \
