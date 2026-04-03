@@ -13,8 +13,8 @@
 !*.tfvars.example
 
 # Terraform backend config with account details
-backend.tf
-!backend.tf.example
+backend.tfvars
+!backend.tfvars.example
 
 # Crash log files
 crash.log
