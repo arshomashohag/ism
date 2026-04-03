@@ -29,8 +29,6 @@ Runs on PR to `main` (plan only) and push to `main` (full deploy):
 | `ECR_REPOSITORY_NAME` | ECR repository name (e.g. `ims-dev-backend`) |
 | `ECS_CLUSTER_NAME` | ECS cluster name (e.g. `ims-dev-cluster`) |
 | `ECS_SERVICE_NAME` | ECS service name (e.g. `ims-dev-backend-svc`) |
-| `ECS_BACKEND_TASK_DEFINITION` | Backend task definition name (e.g. `ims-dev-backend`) |
-| `MIGRATION_TASK_DEFINITION` | Migration task definition name (e.g. `ims-dev-migration`) |
 | `ECS_PRIVATE_SUBNET_IDS` | Comma-separated private subnet IDs for ECS tasks |
 | `ECS_TASK_SG_ID` | Security group ID for ECS tasks |
 | `FRONTEND_BUCKET_NAME` | S3 bucket name for Flutter web build |
