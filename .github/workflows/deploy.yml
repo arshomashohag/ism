@@ -320,6 +320,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Debug secrets
+        run: |
+          echo "ECS_BACKEND_TASK_DEFINITION is set: ${{ secrets.ECS_BACKEND_TASK_DEFINITION != '' }}"
+          echo "MIGRATION_TASK_DEFINITION is set: ${{ secrets.MIGRATION_TASK_DEFINITION != '' }}"
+          echo "ECR_REPOSITORY_NAME is set: ${{ secrets.ECR_REPOSITORY_NAME != '' }}"
+
       - name: Register new task definition revision and update service
         run: |
           IMAGE_URI=$(aws ecr describe-repositories \
