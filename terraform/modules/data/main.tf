@@ -94,7 +94,7 @@ resource "aws_secretsmanager_secret" "db_url" {
 resource "aws_secretsmanager_secret_version" "db_url" {
   secret_id = aws_secretsmanager_secret.db_url.id
   secret_string = jsonencode({
-    url      = "postgresql+asyncpg://u${random_string.db_username.result}:${random_password.db.result}@${aws_db_instance.main.address}:5432/db${random_string.db_name.result}"
+    url      = "postgresql+psycopg2://u${random_string.db_username.result}:${random_password.db.result}@${aws_db_instance.main.address}:5432/db${random_string.db_name.result}"
     sync_url = "postgresql+psycopg2://u${random_string.db_username.result}:${random_password.db.result}@${aws_db_instance.main.address}:5432/db${random_string.db_name.result}"
     host     = aws_db_instance.main.address
     port     = 5432
