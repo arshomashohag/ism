@@ -250,16 +250,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Run Alembic migration ECS task
-        env:
-          IMAGE_URI: ${{ needs.build-backend.outputs.image_uri }}
         run: |
-          if [ -z "$IMAGE_URI" ]; then
-            ECR_REGISTRY=$(aws ecr describe-repositories \
-              --repository-names "${{ secrets.ECR_REPOSITORY_NAME }}" \
-              --query 'repositories[0].repositoryUri' \
-              --output text)
-            IMAGE_URI="$ECR_REGISTRY:${{ github.sha }}"
-          fi
+          IMAGE_URI=$(aws ecr describe-repositories \
+            --repository-names "${{ secrets.ECR_REPOSITORY_NAME }}" \
+            --query 'repositories[0].repositoryUri' \
+            --output text):${{ github.sha }}
           echo "Image URI: $IMAGE_URI"
 
           NEW_TASK_DEF=$(aws ecs describe-task-definition \
@@ -326,16 +321,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Register new task definition revision and update service
-        env:
-          IMAGE_URI: ${{ needs.build-backend.outputs.image_uri }}
         run: |
-          if [ -z "$IMAGE_URI" ]; then
-            ECR_REGISTRY=$(aws ecr describe-repositories \
-              --repository-names "${{ secrets.ECR_REPOSITORY_NAME }}" \
-              --query 'repositories[0].repositoryUri' \
-              --output text)
-            IMAGE_URI="$ECR_REGISTRY:${{ github.sha }}"
-          fi
+          IMAGE_URI=$(aws ecr describe-repositories \
+            --repository-names "${{ secrets.ECR_REPOSITORY_NAME }}" \
+            --query 'repositories[0].repositoryUri' \
+            --output text):${{ github.sha }}
           echo "Image URI: $IMAGE_URI"
 
           NEW_TASK_DEF=$(aws ecs describe-task-definition \
