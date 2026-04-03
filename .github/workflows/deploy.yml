@@ -125,20 +125,18 @@ jobs:
   resolve-approval-env:
     name: Resolve Approval Environment
     runs-on: ubuntu-latest
-    needs: resolve-env
     outputs:
       approval_env: ${{ steps.set.outputs.approval_env }}
     steps:
       - id: set
         run: |
-          echo "approval_env=${{ needs.resolve-env.outputs.env_name }}-approval" \
-            >> "$GITHUB_OUTPUT"
+          echo "approval_env=deployment-approval" >> "$GITHUB_OUTPUT"
 
   # ── Await Terraform Apply Approval ──────────────────────────
   terraform-approve:
     name: Await Terraform Apply Approval
     runs-on: ubuntu-latest
-    needs: [resolve-env, resolve-approval-env, terraform-plan]
+    needs: [resolve-approval-env, terraform-plan]
     if: github.event_name == 'push' && needs.terraform-plan.result == 'success'
     environment: ${{ needs.resolve-approval-env.outputs.approval_env }}
 
