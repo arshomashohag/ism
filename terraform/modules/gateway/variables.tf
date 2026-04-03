@@ -38,3 +38,13 @@ variable "container_port" {
   type        = number
   default     = 8000
 }
+
+variable "ui_domain" {
+  description = "Custom domain for the Flutter web app (e.g. imsdev.carewarebd.com)"
+  type        = string
+}
+
+variable "api_domain" {
+  description = "Custom domain for the backend API (e.g. imsdevapi.carewarebd.com)"
+  type        = string
+}

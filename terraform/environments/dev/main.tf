@@ -66,6 +66,8 @@ module "gateway" {
   alb_sg_id            = module.networking.alb_sg_id
   frontend_bucket_arn  = module.data.frontend_bucket_arn
   frontend_bucket_name = module.data.frontend_bucket_name
+  ui_domain            = var.ui_domain
+  api_domain           = var.api_domain
 }
 
 # ── Compute (ECS Fargate) ─────────────────────────────────────

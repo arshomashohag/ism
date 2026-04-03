@@ -67,3 +67,15 @@ variable "image_tag" {
   type        = string
   default     = "latest"
 }
+
+variable "ui_domain" {
+  description = "Custom domain for the Flutter web app"
+  type        = string
+  default     = "imsdev.carewarebd.com"
+}
+
+variable "api_domain" {
+  description = "Custom domain for the backend API"
+  type        = string
+  default     = "imsdevapi.carewarebd.com"
+}
