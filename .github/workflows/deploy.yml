@@ -358,37 +358,9 @@ jobs:
       - name: Wait for ECS service to stabilise
         timeout-minutes: 20
         run: |
-          CLUSTER="${{ secrets.ECS_CLUSTER_NAME }}"
-          SERVICE="${{ secrets.ECS_SERVICE_NAME }}"
-          DEADLINE=$(( $(date +%s) + 1200 ))
-
-          until [ $(date +%s) -ge $DEADLINE ]; do
-            DEPLOYMENTS=$(aws ecs describe-services \
-              --cluster "$CLUSTER" \
-              --services "$SERVICE" \
-              --query 'services[0].deployments' \
-              --output json)
-
-            COUNT=$(echo "$DEPLOYMENTS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))")
-            STATUS=$(echo "$DEPLOYMENTS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['rolloutState'])")
-
-            echo "Deployments in progress: $COUNT  rolloutState: $STATUS"
-
-            if [ "$COUNT" -eq 1 ] && [ "$STATUS" = "COMPLETED" ]; then
-              echo "Service is stable."
-              exit 0
-            fi
-
-            if [ "$STATUS" = "FAILED" ]; then
-              echo "Deployment rollout FAILED."
-              exit 1
-            fi
-
-            sleep 15
-          done
-
-          echo "Timed out waiting for service to stabilise."
-          exit 1
+          aws ecs wait services-stable \
+            --cluster "${{ secrets.ECS_CLUSTER_NAME }}" \
+            --services "${{ secrets.ECS_SERVICE_NAME }}"
 
   # ── Build & Deploy Flutter Web ──────────────────────────────
   deploy-frontend:
