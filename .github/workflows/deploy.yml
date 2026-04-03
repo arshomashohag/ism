@@ -391,7 +391,8 @@ jobs:
         run: |
           flutter build web \
             --release \
-            --base-href /
+            --base-href / \
+            --dart-define=BACKEND_URL=http://${{ secrets.ALB_DNS_NAME }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
