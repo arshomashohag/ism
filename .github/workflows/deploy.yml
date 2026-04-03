@@ -251,23 +251,38 @@ jobs:
 
       - name: Run Alembic migration ECS task
         run: |
+          IMAGE_URI="${{ needs.build-backend.outputs.image_uri }}"
+
+          NEW_TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "${{ secrets.MIGRATION_TASK_DEFINITION }}" \
+            --query 'taskDefinition' \
+            --output json \
+            | python3 -c "
+          import sys, json
+          td = json.load(sys.stdin)
+          td['containerDefinitions'][0]['image'] = '$IMAGE_URI'
+          for key in ['taskDefinitionArn','revision','status',
+                      'requiresAttributes','compatibilities',
+                      'registeredAt','registeredBy']:
+              td.pop(key, None)
+          print(json.dumps(td))
+          ")
+
+          MIGRATION_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "Migration task definition: $MIGRATION_TASK_DEF_ARN"
+
           TASK_ARN=$(aws ecs run-task \
             --cluster "${{ secrets.ECS_CLUSTER_NAME }}" \
-            --task-definition "${{ secrets.MIGRATION_TASK_DEFINITION }}" \
+            --task-definition "$MIGRATION_TASK_DEF_ARN" \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={
               subnets=[${{ secrets.ECS_PRIVATE_SUBNET_IDS }}],
               securityGroups=[${{ secrets.ECS_TASK_SG_ID }}],
               assignPublicIp=DISABLED
-            }" \
-            --overrides "{
-              \"containerOverrides\": [{
-                \"name\": \"migration\",
-                \"environment\": [{
-                  \"name\": \"IMAGE_TAG\",
-                  \"value\": \"${{ github.sha }}\"
-                }]
-              }]
             }" \
             --query 'tasks[0].taskArn' \
             --output text)
@@ -291,7 +306,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend to ECS
     runs-on: ubuntu-latest
-    needs: [resolve-env, run-migrations]
+    needs: [resolve-env, build-backend, run-migrations]
     if: github.event_name == 'push' && needs.run-migrations.result == 'success'
     environment: ${{ needs.resolve-env.outputs.env_name }}
     permissions:
@@ -305,12 +320,36 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Update ECS service with new image tag
+      - name: Register new task definition revision and update service
         run: |
+          IMAGE_URI="${{ needs.build-backend.outputs.image_uri }}"
+
+          NEW_TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "${{ secrets.ECS_BACKEND_TASK_DEFINITION }}" \
+            --query 'taskDefinition' \
+            --output json \
+            | python3 -c "
+          import sys, json
+          td = json.load(sys.stdin)
+          td['containerDefinitions'][0]['image'] = '$IMAGE_URI'
+          for key in ['taskDefinitionArn','revision','status',
+                      'requiresAttributes','compatibilities',
+                      'registeredAt','registeredBy']:
+              td.pop(key, None)
+          print(json.dumps(td))
+          ")
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "New task definition: $NEW_TASK_DEF_ARN"
+
           aws ecs update-service \
             --cluster "${{ secrets.ECS_CLUSTER_NAME }}" \
             --service "${{ secrets.ECS_SERVICE_NAME }}" \
-            --force-new-deployment
+            --task-definition "$NEW_TASK_DEF_ARN"
 
       - name: Wait for ECS service to stabilise
         timeout-minutes: 20
