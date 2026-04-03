@@ -154,6 +154,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      alb_dns_name: ${{ steps.tf-output.outputs.alb_dns_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -188,6 +190,13 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ needs.resolve-env.outputs.tf_dir }}
         run: terraform apply -auto-approve tfplan
+
+      - name: Capture Terraform outputs
+        id: tf-output
+        working-directory: ${{ needs.resolve-env.outputs.tf_dir }}
+        run: |
+          echo "alb_dns_name=$(terraform output -raw alb_dns_name)" \
+            >> "$GITHUB_OUTPUT"
 
   # ── Build & Push Backend Image ──────────────────────────────
   build-backend:
@@ -392,7 +401,7 @@ jobs:
           flutter build web \
             --release \
             --base-href / \
-            --dart-define=BACKEND_URL=http://${{ secrets.ALB_DNS_NAME }}
+            --dart-define=BACKEND_URL=http://${{ needs.terraform-apply.outputs.alb_dns_name }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
