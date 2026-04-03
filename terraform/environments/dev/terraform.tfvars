@@ -1,8 +1,5 @@
-# Copy to terraform.tfvars (NEVER commit terraform.tfvars — it is git-ignored)
-# Run: cp terraform.tfvars.example terraform.tfvars
-
 aws_region   = "us-east-1"
-environment  = "dev"
+environment  = "development"
 project_name = "ims"
 
 vpc_cidr = "10.0.0.0/16"

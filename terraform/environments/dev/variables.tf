@@ -24,18 +24,6 @@ variable "vpc_cidr" {
 
 # ── RDS ───────────────────────────────────────────────────────
 
-variable "db_name" {
-  description = "PostgreSQL database name"
-  type        = string
-  default     = "ims"
-}
-
-variable "db_username" {
-  description = "PostgreSQL master username"
-  type        = string
-  default     = "ims_admin"
-}
-
 variable "db_instance_class" {
   description = "RDS instance class"
   type        = string

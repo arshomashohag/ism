@@ -49,8 +49,6 @@ module "data" {
   private_subnet_ids = module.networking.private_subnet_ids
   rds_sg_id          = module.networking.rds_sg_id
 
-  db_name                  = var.db_name
-  db_username              = var.db_username
   db_instance_class        = var.db_instance_class
   db_allocated_storage     = var.db_allocated_storage
   db_backup_retention_days = var.db_backup_retention_days

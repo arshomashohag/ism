@@ -8,9 +8,11 @@
 *.tfstate
 *.tfstate.*
 
-# Terraform variable files with secrets
+# Terraform backend variable files with account details
 *.tfvars
-!*.tfvars.example
+!terraform.tfvars
+!terraform.tfvars.example
+!backend.tfvars.example
 
 # Terraform backend config with account details
 backend.tfvars
