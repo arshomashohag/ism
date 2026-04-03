@@ -81,6 +81,7 @@ jobs:
         id: plan
         working-directory: ${{ needs.resolve-env.outputs.tf_dir }}
         run: |
+          set -o pipefail
           terraform plan \
             -var="image_tag=${{ github.sha }}" \
             -out=tfplan \
