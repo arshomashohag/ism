@@ -132,8 +132,12 @@ class _ImsAppState extends ConsumerState<ImsApp> {
     final authAsync = ref.read(authProvider);
     if (authAsync.isLoading) return null;
 
-    final isAuthenticated =
-        authAsync.valueOrNull?.status == AuthStatus.authenticated;
+    final authStatus = authAsync.valueOrNull?.status;
+    if (authStatus == null || authStatus == AuthStatus.unknown) {
+      return null;
+    }
+
+    final isAuthenticated = authStatus == AuthStatus.authenticated;
     final loc = state.matchedLocation;
     final isPublic =
         loc == '/' || loc == '/login' || loc == '/register';
