@@ -57,3 +57,37 @@ jobs:
       - name: Run tests
         working-directory: frontend
         run: flutter test
+
+  build-macos:
+    name: Build macOS Desktop
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        working-directory: frontend
+        run: flutter config --enable-macos-desktop
+
+      - name: Get dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Build macOS
+        working-directory: frontend
+        run: flutter build macos --release
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: >
+            frontend/build/macos/Build/Products/Release/
+            *.app
+          retention-days: 7

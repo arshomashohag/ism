@@ -1,10 +1,13 @@
 /// Point-of-sale screen — product grid and cart.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/keyboard/pos_shortcuts.dart';
 import '../../inventory/providers/inventory_provider.dart';
 import '../../products/domain/product.dart';
 import '../../products/providers/products_provider.dart';
@@ -13,6 +16,14 @@ import '../providers/sales_provider.dart';
 import 'widgets/checkout_dialog.dart';
 
 /// POS screen with product grid (left) and live cart (right).
+///
+/// Keyboard shortcuts (desktop / macOS):
+/// - F2: focus product search field
+/// - F4: trigger checkout (disabled when cart empty or no warehouse)
+/// - F8: reserved for void-last-sale (navigates to sales history)
+///
+/// Barcode scanner: rapid keystroke sequences ending with Enter are
+/// detected by [BarcodeScannerService] and used to search products.
 class PosScreen extends ConsumerStatefulWidget {
   /// Creates a [PosScreen].
   const PosScreen({super.key});
@@ -23,60 +34,200 @@ class PosScreen extends ConsumerStatefulWidget {
 
 class _PosScreenState extends ConsumerState<PosScreen> {
   final _searchCtrl = TextEditingController();
+  final _searchFocus = FocusNode();
+  final _scannerService = BarcodeScannerService();
+  late final StreamSubscription<String> _barcodeSub;
   String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _barcodeSub = _scannerService.barcodes.listen(_onBarcode);
+  }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _searchFocus.dispose();
+    _barcodeSub.cancel();
+    _scannerService.dispose();
     super.dispose();
+  }
+
+  void _onBarcode(String code) {
+    setState(() {
+      _search = code;
+      _searchCtrl.text = code;
+    });
+  }
+
+  void _focusSearch() {
+    _searchFocus.requestFocus();
+    _searchCtrl.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchCtrl.text.length,
+    );
+  }
+
+  Future<void> _triggerCheckout() async {
+    final cart = ref.read(cartProvider);
+    if (cart.isEmpty || cart.warehouseId == null) return;
+    if (!mounted) return;
+    final sale = await showDialog<Sale>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => CheckoutDialog(cart: cart),
+    );
+    if (sale == null || !mounted) return;
+    ref.read(cartProvider.notifier).clear();
+    context.push('/sales/${sale.id}');
+  }
+
+  void _voidLastSale() {
+    context.push('/sales');
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: cs.surfaceContainerLowest,
-      appBar: AppBar(
-        title: const Text('Point of Sale'),
-        actions: [
-          _CartBadge(),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 800;
-          if (wide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: _ProductGrid(search: _search),
-                ),
-                const VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                ),
-                const SizedBox(
-                  width: 340,
-                  child: _CartPanel(),
-                ),
-              ],
-            );
-          }
-          return _ProductGrid(search: _search);
+
+    return Shortcuts(
+      shortcuts: posKeyboardShortcuts,
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          FocusSearchIntent: CallbackAction<FocusSearchIntent>(
+            onInvoke: (_) => _focusSearch(),
+          ),
+          CheckoutIntent: CallbackAction<CheckoutIntent>(
+            onInvoke: (_) => _triggerCheckout(),
+          ),
+          VoidLastSaleIntent: CallbackAction<VoidLastSaleIntent>(
+            onInvoke: (_) => _voidLastSale(),
+          ),
         },
+        child: Focus(
+          autofocus: true,
+          onKeyEvent: (_, event) =>
+              _scannerService.handleKeyEvent(event),
+          child: Scaffold(
+            backgroundColor: cs.surfaceContainerLowest,
+            appBar: AppBar(
+              title: const Text('Point of Sale'),
+              actions: [
+                _ShortcutHints(),
+                _CartBadge(),
+                const SizedBox(width: 8),
+              ],
+            ),
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 800;
+                if (wide) {
+                  return Row(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _ProductGrid(
+                          search: _search,
+                        ),
+                      ),
+                      const VerticalDivider(
+                        width: 1,
+                        thickness: 1,
+                      ),
+                      SizedBox(
+                        width: 340,
+                        child: _CartPanel(
+                          onCheckout: _triggerCheckout,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return _ProductGrid(search: _search);
+              },
+            ),
+            floatingActionButton: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 800;
+                if (wide) return const SizedBox.shrink();
+                return _FloatingCartButton(
+                  onCheckout: _triggerCheckout,
+                );
+              },
+            ),
+            bottomNavigationBar: _SearchBar(
+              controller: _searchCtrl,
+              focusNode: _searchFocus,
+              onChanged: (v) => setState(() => _search = v),
+            ),
+          ),
+        ),
       ),
-      floatingActionButton:
-          LayoutBuilder(builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 800;
-        if (wide) return const SizedBox.shrink();
-        return _FloatingCartButton();
-      }),
-      bottomNavigationBar: _SearchBar(
-        controller: _searchCtrl,
-        onChanged: (v) => setState(() => _search = v),
+    );
+  }
+}
+
+// ── Shortcut hints chip ────────────────────────────────────────
+
+class _ShortcutHints extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Tooltip(
+        message:
+            'F2 — Search  •  F4 — Checkout  •  F8 — Sales',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _KeyChip(label: 'F2', cs: cs, tt: tt),
+            const SizedBox(width: 4),
+            _KeyChip(label: 'F4', cs: cs, tt: tt),
+            const SizedBox(width: 4),
+            _KeyChip(label: 'F8', cs: cs, tt: tt),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KeyChip extends StatelessWidget {
+  const _KeyChip({
+    required this.label,
+    required this.cs,
+    required this.tt,
+  });
+
+  final String label;
+  final ColorScheme cs;
+  final TextTheme tt;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: cs.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Text(
+        label,
+        style: tt.labelSmall?.copyWith(
+          color: cs.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -87,10 +238,12 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
     required this.controller,
+    required this.focusNode,
     required this.onChanged,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final ValueChanged<String> onChanged;
 
   @override
@@ -100,9 +253,10 @@ class _SearchBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         child: TextField(
           controller: controller,
+          focusNode: focusNode,
           onChanged: onChanged,
           decoration: const InputDecoration(
-            hintText: 'Search products…',
+            hintText: 'Search products… (F2)',
             prefixIcon: Icon(Icons.search),
           ),
         ),
@@ -137,8 +291,10 @@ class _CartBadge extends ConsumerWidget {
         expand: false,
         initialChildSize: 0.6,
         maxChildSize: 0.9,
-        builder: (ctx, scroll) =>
-            _CartPanel(scrollController: scroll),
+        builder: (ctx, scroll) => _CartPanel(
+          scrollController: scroll,
+          onCheckout: () async {},
+        ),
       ),
     );
   }
@@ -147,6 +303,10 @@ class _CartBadge extends ConsumerWidget {
 // ── Floating cart button (mobile) ─────────────────────────────
 
 class _FloatingCartButton extends ConsumerWidget {
+  const _FloatingCartButton({required this.onCheckout});
+
+  final Future<void> Function() onCheckout;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final count =
@@ -162,8 +322,10 @@ class _FloatingCartButton extends ConsumerWidget {
           expand: false,
           initialChildSize: 0.6,
           maxChildSize: 0.9,
-          builder: (ctx, scroll) =>
-              _CartPanel(scrollController: scroll),
+          builder: (ctx, scroll) => _CartPanel(
+            scrollController: scroll,
+            onCheckout: onCheckout,
+          ),
         ),
       ),
     );
@@ -237,9 +399,7 @@ class _ProductCard extends ConsumerWidget {
               );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                '${product.name} added to cart',
-              ),
+              content: Text('${product.name} added to cart'),
               duration: const Duration(seconds: 1),
               behavior: SnackBarBehavior.floating,
             ),
@@ -248,16 +408,14 @@ class _ProductCard extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
                   color: cs.primaryContainer,
-                  borderRadius:
-                      BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
                   child: Text(
@@ -305,8 +463,12 @@ class _ProductCard extends ConsumerWidget {
 // ── Cart panel ────────────────────────────────────────────────
 
 class _CartPanel extends ConsumerWidget {
-  const _CartPanel({this.scrollController});
+  const _CartPanel({
+    required this.onCheckout,
+    this.scrollController,
+  });
 
+  final Future<void> Function() onCheckout;
   final ScrollController? scrollController;
 
   @override
@@ -321,9 +483,7 @@ class _CartPanel extends ConsumerWidget {
           _CartHeader(itemCount: cart.items.length),
           if (cart.isEmpty)
             const Expanded(
-              child: Center(
-                child: Text('Cart is empty'),
-              ),
+              child: Center(child: Text('Cart is empty')),
             )
           else ...[
             Expanded(
@@ -331,14 +491,12 @@ class _CartPanel extends ConsumerWidget {
                 controller: scrollController,
                 itemCount: cart.items.length,
                 itemBuilder: (context, index) =>
-                    _CartLineItem(
-                  item: cart.items[index],
-                ),
+                    _CartLineItem(item: cart.items[index]),
               ),
             ),
             _CartTotals(cart: cart),
           ],
-          _CartActions(cart: cart),
+          _CartActions(cart: cart, onCheckout: onCheckout),
         ],
       ),
     );
@@ -392,8 +550,7 @@ class _CartLineItem extends ConsumerWidget {
         children: [
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.productName,
@@ -407,7 +564,8 @@ class _CartLineItem extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '\$${item.unitPrice.toStringAsFixed(2)} × ${item.qty}',
+                  '\$${item.unitPrice.toStringAsFixed(2)}'
+                  ' × ${item.qty}',
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -524,9 +682,8 @@ class _CartTotals extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final style = Theme.of(context).textTheme.bodySmall;
-    final boldStyle = style?.copyWith(
-      fontWeight: FontWeight.w600,
-    );
+    final boldStyle =
+        style?.copyWith(fontWeight: FontWeight.w600);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -610,9 +767,13 @@ class _TotalsRow extends StatelessWidget {
 }
 
 class _CartActions extends ConsumerWidget {
-  const _CartActions({required this.cart});
+  const _CartActions({
+    required this.cart,
+    required this.onCheckout,
+  });
 
   final CartState cart;
+  final Future<void> Function() onCheckout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -646,16 +807,13 @@ class _CartActions extends ConsumerWidget {
                   ),
                   label: Text(
                     'Checkout'
-                    ' (\$${cart.grandTotal.toStringAsFixed(2)})',
+                    ' (\$${cart.grandTotal.toStringAsFixed(2)})'
+                    '  F4',
                   ),
-                  onPressed:
-                      (cart.isEmpty || cart.warehouseId == null)
-                          ? null
-                          : () => _openCheckout(
-                                context,
-                                ref,
-                                cart,
-                              ),
+                  onPressed: (cart.isEmpty ||
+                          cart.warehouseId == null)
+                      ? null
+                      : onCheckout,
                 ),
               ),
             ],
@@ -663,21 +821,6 @@ class _CartActions extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _openCheckout(
-    BuildContext context,
-    WidgetRef ref,
-    CartState cart,
-  ) async {
-    final sale = await showDialog<Sale>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => CheckoutDialog(cart: cart),
-    );
-    if (sale == null || !context.mounted) return;
-    ref.read(cartProvider.notifier).clear();
-    context.push('/sales/${sale.id}');
   }
 }
 
@@ -688,8 +831,8 @@ class _WarehouseDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedId =
-        ref.watch(cartProvider.select((s) => s.warehouseId));
+    final selectedId = ref
+        .watch(cartProvider.select((s) => s.warehouseId));
 
     return DropdownButtonFormField<String>(
       initialValue: selectedId,
@@ -697,7 +840,8 @@ class _WarehouseDropdown extends ConsumerWidget {
         labelText: 'Warehouse',
         prefixIcon: Icon(Icons.warehouse_outlined),
       ),
-      items: warehouses.map<DropdownMenuItem<String>>((w) {
+      items: warehouses
+          .map<DropdownMenuItem<String>>((w) {
         return DropdownMenuItem<String>(
           value: w.id as String,
           child: Text(w.name as String),

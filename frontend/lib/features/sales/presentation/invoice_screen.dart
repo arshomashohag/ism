@@ -9,8 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-
+import '../../../core/platform/printing/printing_service.dart';
 import '../domain/sale.dart';
 import '../providers/sales_provider.dart';
 
@@ -87,8 +86,10 @@ class InvoiceScreen extends ConsumerWidget {
 
   Future<void> _print(
       BuildContext context, Sale sale) async {
-    await Printing.layoutPdf(
-      onLayout: (_) => _buildPdf(sale),
+    final pdfBytes = await _buildPdf(sale);
+    await PrintingService.instance.printDocument(
+      pdfBytes: pdfBytes,
+      name: sale.invoiceNumber,
     );
   }
 
