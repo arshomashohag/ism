@@ -471,9 +471,10 @@ jobs:
         working-directory: >-
           ${{ env.FRONTEND_DIR }}/build/macos/Build/Products/Release
         run: |
+          APP=$(ls -d *.app | head -1)
           zip -r --symlinks \
             IMS-macOS-${{ github.sha }}.zip \
-            "IMS.app"
+            "$APP"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
