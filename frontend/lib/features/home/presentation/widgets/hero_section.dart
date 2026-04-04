@@ -66,7 +66,7 @@ class _DesktopLayout extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.centerRight,
-            child: DashboardMockup(isDesktop: true),
+            child: const DashboardMockup(isDesktop: true),
           ),
         ),
       ],

@@ -75,11 +75,11 @@ class _TitleBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            _MacDot(color: const Color(0xFFFF5F57)),
+            const _MacDot(color: Color(0xFFFF5F57)),
             const SizedBox(width: 6),
-            _MacDot(color: const Color(0xFFFFBD2E)),
+            const _MacDot(color: Color(0xFFFFBD2E)),
             const SizedBox(width: 6),
-            _MacDot(color: const Color(0xFF28C840)),
+            const _MacDot(color: Color(0xFF28C840)),
             const SizedBox(width: 12),
             Text(
               'Dashboard',
@@ -262,7 +262,7 @@ class _SparklinePainter extends CustomPainter {
     final fillPath = Path();
 
     final step = size.width / (_points.length - 1);
-    final padding = 12.0;
+    const padding = 12.0;
     final chartHeight = size.height - padding * 2;
 
     for (var i = 0; i < _points.length; i++) {
