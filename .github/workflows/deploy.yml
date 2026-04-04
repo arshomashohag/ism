@@ -431,3 +431,66 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
             --paths "/*"
+
+  # ── Build & Deploy Flutter macOS Desktop ────────────────────
+  deploy-macos:
+    name: Build & Deploy macOS Desktop
+    runs-on: macos-latest
+    needs: [resolve-env, terraform-apply]
+    if: github.event_name == 'push' && needs.terraform-apply.result == 'success'
+    environment: ${{ needs.resolve-env.outputs.env_name }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: flutter config --enable-macos-desktop
+
+      - name: Get dependencies
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: flutter pub get
+
+      - name: Build macOS release
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          flutter build macos \
+            --release \
+            --dart-define=BACKEND_URL=${{ secrets.BACKEND_URL }}
+
+      - name: Zip .app bundle
+        working-directory: >-
+          ${{ env.FRONTEND_DIR }}/build/macos/Build/Products/Release
+        run: |
+          zip -r --symlinks \
+            IMS-macOS-${{ github.sha }}.zip \
+            "IMS.app"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload macOS build to S3
+        working-directory: >-
+          ${{ env.FRONTEND_DIR }}/build/macos/Build/Products/Release
+        run: |
+          aws s3 cp \
+            "IMS-macOS-${{ github.sha }}.zip" \
+            "s3://${{ secrets.FRONTEND_BUCKET_NAME }}/downloads/macos/IMS-macOS-${{ github.sha }}.zip" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 cp \
+            "IMS-macOS-${{ github.sha }}.zip" \
+            "s3://${{ secrets.FRONTEND_BUCKET_NAME }}/downloads/macos/IMS-macOS-latest.zip" \
+            --cache-control "no-cache, no-store, must-revalidate"
