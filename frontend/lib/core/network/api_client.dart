@@ -167,6 +167,23 @@ class ApiClient {
     return _decode(response);
   }
 
+  /// GET without auth (used for public endpoints like tenant list).
+  Future<dynamic> getPublic(
+    String path, {
+    Map<String, dynamic>? query,
+  }) async {
+    final response = await _http.get(
+      _uri(path, query),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+    _log('GET', path, response.statusCode);
+    _assertOk(response);
+    return _decode(response);
+  }
+
   /// POST without auth (used for login/register).
   Future<dynamic> postPublic(
     String path, {

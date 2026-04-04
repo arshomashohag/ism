@@ -21,6 +21,7 @@ class AuthState {
     this.accessToken,
     this.refreshToken,
     this.userRole,
+    this.tenantSlug,
   });
 
   /// Creates an initial unknown state.
@@ -28,14 +29,16 @@ class AuthState {
       : status = AuthStatus.unknown,
         accessToken = null,
         refreshToken = null,
-        userRole = null;
+        userRole = null,
+        tenantSlug = null;
 
   /// Creates an unauthenticated state.
   const AuthState.unauthenticated()
       : status = AuthStatus.unauthenticated,
         accessToken = null,
         refreshToken = null,
-        userRole = null;
+        userRole = null,
+        tenantSlug = null;
 
   /// Authentication status.
   final AuthStatus status;
@@ -48,4 +51,7 @@ class AuthState {
 
   /// User role from the access token claims.
   final String? userRole;
+
+  /// Tenant slug selected at login, null when unauthenticated.
+  final String? tenantSlug;
 }

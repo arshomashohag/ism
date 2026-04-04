@@ -3,10 +3,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/network/api_client.dart';
+import '../data/auth_repository.dart';
 import '../providers/auth_provider.dart';
 
-/// Email/password login form.
+/// Email/password login form with tenant selector.
 class LoginScreen extends ConsumerStatefulWidget {
   /// Creates a [LoginScreen].
   const LoginScreen({super.key});
@@ -22,6 +24,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure = true;
   String? _errorMessage;
 
+  List<String> _tenantSlugs = [];
+  String? _selectedSlug;
+  bool _loadingSlugs = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTenants();
+  }
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -29,16 +41,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _loadTenants() async {
+    setState(() => _loadingSlugs = true);
+    try {
+      final slugs =
+          await ref.read(authRepositoryProvider).fetchTenantSlugs();
+      setState(() {
+        _tenantSlugs = slugs;
+        if (slugs.isNotEmpty) _selectedSlug = slugs.first;
+      });
+    } catch (_) {
+      // Silently ignore — user can type slug manually.
+    } finally {
+      setState(() => _loadingSlugs = false);
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedSlug == null || _selectedSlug!.isEmpty) {
+      setState(() => _errorMessage = 'Please select a tenant.');
+      return;
+    }
     setState(() => _errorMessage = null);
 
     try {
-      await ref
-          .read(authProvider.notifier)
-          .login(_emailCtrl.text.trim(), _passwordCtrl.text);
-      // Router redirect in main.dart handles navigation to /products
-      // once authProvider state becomes authenticated.
+      await ref.read(authProvider.notifier).login(
+            _emailCtrl.text.trim(),
+            _passwordCtrl.text,
+            _selectedSlug!,
+          );
     } on ApiException catch (e) {
       setState(() {
         _errorMessage = e.statusCode == 401
@@ -81,6 +113,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
+                  _loadingSlugs
+                      ? const Center(
+                          child: SizedBox(
+                            height: 48,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : _tenantSlugs.isEmpty
+                          ? TextFormField(
+                              initialValue: _selectedSlug,
+                              decoration: const InputDecoration(
+                                labelText: 'Tenant',
+                              ),
+                              onChanged: (v) => _selectedSlug = v,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return 'Tenant is required';
+                                }
+                                return null;
+                              },
+                            )
+                          : DropdownButtonFormField<String>(
+                              value: _selectedSlug,
+                              decoration: const InputDecoration(
+                                labelText: 'Tenant',
+                              ),
+                              items: _tenantSlugs
+                                  .map(
+                                    (s) => DropdownMenuItem(
+                                      value: s,
+                                      child: Text(s),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _selectedSlug = v),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return 'Tenant is required';
+                                }
+                                return null;
+                              },
+                            ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
