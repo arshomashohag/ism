@@ -50,7 +50,7 @@ def upgrade() -> None:
     for tenant in tenants:
         slug = tenant.slug
         conn.execute(
-            text(f"SET search_path TO {slug}, public")
+            text(f'SET search_path TO "{slug}", public')
         )
         for table in _TABLES_WITH_TENANT_ID:
             _drop_tenant_id(conn, table, slug)
@@ -107,7 +107,7 @@ def downgrade() -> None:
     for tenant in tenants:
         slug = tenant.slug
         conn.execute(
-            text(f"SET search_path TO {slug}, public")
+            text(f'SET search_path TO "{slug}", public')
         )
         for table in _TABLES_WITH_TENANT_ID:
             conn.execute(

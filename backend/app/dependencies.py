@@ -121,7 +121,7 @@ def get_tenant_db(
     db = SessionLocal()
     try:
         db.execute(
-            text(f"SET LOCAL search_path TO {schema}, public")
+            text(f'SET LOCAL search_path TO "{schema}", public')
         )
         yield db
     finally:

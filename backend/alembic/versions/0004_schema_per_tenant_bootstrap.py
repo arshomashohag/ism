@@ -68,7 +68,7 @@ def upgrade() -> None:
         )
 
         conn.execute(
-            text(f"SET search_path TO {slug}, public")
+            text(f'SET search_path TO "{slug}", public')
         )
 
         for table in _PER_TENANT_TABLES:

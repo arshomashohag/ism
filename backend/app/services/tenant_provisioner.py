@@ -199,7 +199,7 @@ class TenantProvisioner:
         cfg.attributes["target_schema"] = slug
 
         self.db.execute(
-            text(f"SET search_path TO {slug}, public")
+            text(f'SET search_path TO "{slug}", public')
         )
         command.upgrade(cfg, "head")
         self.db.execute(
@@ -224,7 +224,7 @@ class TenantProvisioner:
         :return: None
         """
         self.db.execute(
-            text(f"SET LOCAL search_path TO {slug}, public")
+            text(f'SET LOCAL search_path TO "{slug}", public')
         )
 
         admin_id = uuid.uuid4()
