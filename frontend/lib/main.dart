@@ -11,7 +11,9 @@ import 'core/layout/app_shell.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/register_screen.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/home/presentation/home_screen.dart';
 import 'features/inventory/presentation/inventory_list_screen.dart';
 import 'features/inventory/presentation/transfer_screen.dart';
 import 'features/products/presentation/product_detail_screen.dart';
@@ -47,13 +49,21 @@ class _ImsAppState extends ConsumerState<ImsApp> {
   void initState() {
     super.initState();
     _router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/',
       refreshListenable: _routerKey,
       redirect: _redirect,
       routes: [
         GoRoute(
+          path: '/',
+          builder: (_, __) => const HomeScreen(),
+        ),
+        GoRoute(
           path: '/login',
           builder: (_, __) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (_, __) => const RegisterScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) =>
@@ -124,21 +134,21 @@ class _ImsAppState extends ConsumerState<ImsApp> {
 
     final isAuthenticated =
         authAsync.valueOrNull?.status == AuthStatus.authenticated;
-    final isLoggingIn = state.matchedLocation == '/login';
+    final loc = state.matchedLocation;
+    final isPublic =
+        loc == '/' || loc == '/login' || loc == '/register';
 
-    if (!isAuthenticated && !isLoggingIn) return '/login';
-    if (isAuthenticated && isLoggingIn) {
+    if (!isAuthenticated && !isPublic) return '/';
+    if (isAuthenticated && isPublic) {
       final role = authAsync.valueOrNull?.userRole;
       return role == 'admin' ? '/dashboard' : '/products';
     }
 
     final auth = authAsync.valueOrNull;
-    if (state.matchedLocation.startsWith('/dashboard') &&
-        auth?.userRole != 'admin') {
+    if (loc.startsWith('/dashboard') && auth?.userRole != 'admin') {
       return '/products';
     }
-    if (state.matchedLocation.startsWith('/users') &&
-        auth?.userRole != 'admin') {
+    if (loc.startsWith('/users') && auth?.userRole != 'admin') {
       return '/sales';
     }
     return null;
