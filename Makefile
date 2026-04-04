@@ -27,6 +27,9 @@ flutter-run:
 lint-py:
 	cd backend && ruff check app/
 
+lint-py-fix:
+	cd backend && ruff check app/ --fix
+
 test-py:
 	cd backend && pytest tests/ -v
 
