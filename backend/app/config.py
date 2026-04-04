@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     :ivar jwt_public_key: RS256 public key PEM for verifying tokens
     :ivar access_token_expire_minutes: Access token lifetime in minutes
     :ivar refresh_token_expire_days: Refresh token lifetime in days
+    :ivar redis_url: Redis connection URL for token blacklist
+    :ivar admin_api_key: Static secret for X-Admin-Key header
+    :ivar pgbouncer_url: PgBouncer connection URL (optional)
     """
 
     database_url: str = (
@@ -67,6 +70,10 @@ class Settings(BaseSettings):
     jwt_public_key: str = _DEV_PUBLIC_KEY
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
+
+    redis_url: str = "redis://localhost:6379/0"
+    admin_api_key: str = "dev-admin-key"
+    pgbouncer_url: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, require_role
+from app.dependencies import get_current_user, get_tenant_db, require_role
 from app.models.category import Category
 from app.schemas.auth import CurrentUser
 from app.schemas.products import CategoryCreate, CategoryResponse
@@ -47,7 +47,7 @@ def _build_category_tree(
 @router.get("/", response_model=list[CategoryResponse])
 def list_categories(
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> list[CategoryResponse]:
     """
     Return all categories for the tenant as a nested tree.
@@ -74,7 +74,7 @@ def create_category(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> CategoryResponse:
     """
     Create a new product category.

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, require_role
+from app.dependencies import get_tenant_db, require_role
 from app.models.inventory import Inventory
 from app.models.product import Product
 from app.models.sale_line_item import SaleLineItem
@@ -93,7 +93,7 @@ def refresh_analytics(
     current_user: CurrentUser = Depends(
         require_role("admin")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> RefreshResponse:
     """
     Trigger on-demand refresh of analytics materialized views.
@@ -136,7 +136,7 @@ def get_sales_summary(
     current_user: CurrentUser = Depends(
         require_role("admin")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SalesSummaryResponse:
     """
     Return aggregated sales KPIs with growth vs prior period.
@@ -287,7 +287,7 @@ def get_salesman_kpi(
     current_user: CurrentUser = Depends(
         require_role("admin")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SalesmanKpiResponse:
     """
     Return per-salesman KPI leaderboard for the date range.
@@ -388,7 +388,7 @@ def get_inventory_health(
     current_user: CurrentUser = Depends(
         require_role("admin")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> InventoryHealthResponse:
     """
     Return a stock-health snapshot for all active products.

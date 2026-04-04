@@ -7,7 +7,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, require_role
+from app.dependencies import get_current_user, get_tenant_db, require_role
 from app.models.inventory import Inventory
 from app.models.product import Product
 from app.models.warehouse import Warehouse
@@ -114,7 +114,7 @@ def _get_inventory_entry(
 @router.get("/warehouses", response_model=list[WarehouseResponse])
 def list_warehouses(
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> list[WarehouseResponse]:
     """
     Return all active warehouses for the tenant.
@@ -149,7 +149,7 @@ def list_inventory(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> InventoryListResponse:
     """
     Return paginated inventory entries for the tenant.
@@ -213,7 +213,7 @@ def adjust_stock(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> InventoryResponse:
     """
     Apply a signed delta adjustment to stock on hand.
@@ -276,7 +276,7 @@ def transfer_stock(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> list[InventoryResponse]:
     """
     Move stock atomically from one warehouse to another.
@@ -350,7 +350,7 @@ def record_count(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> InventoryResponse:
     """
     Record the result of a physical stock count (absolute quantity).
@@ -395,7 +395,7 @@ def record_count(
 @router.get("/alerts", response_model=list[AlertResponse])
 def get_alerts(
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> list[AlertResponse]:
     """
     Return all low-stock and out-of-stock alerts for the tenant.

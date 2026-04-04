@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import redis as redis_lib
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -152,33 +153,73 @@ class TokenService:
             return None
 
 
-_refresh_token_blacklist: set[str] = set()
+def _make_redis_client() -> redis_lib.Redis:
+    """
+    Create a Redis client from the configured URL.
+
+    :return: Connected Redis client instance
+    """
+    return redis_lib.from_url(
+        settings.redis_url,
+        decode_responses=True,
+    )
+
+
+_redis_client: Optional[redis_lib.Redis] = None
+
+
+def _get_redis() -> redis_lib.Redis:
+    """
+    Return the module-level Redis client, creating it on first call.
+
+    :return: Redis client instance
+    """
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = _make_redis_client()
+    return _redis_client
+
+
+_BLACKLIST_TTL = 60 * 60 * 24 * 8
 
 
 class TokenBlacklist:
     """
-    In-memory refresh token blacklist for development.
+    Redis-backed refresh token blacklist.
 
-    Stores invalidated refresh tokens on logout. Production
-    deployments should replace this with Redis.
+    Stores invalidated refresh tokens with a TTL slightly longer
+    than the refresh token lifetime so entries expire automatically.
     """
 
     @staticmethod
     def add(token: str) -> None:
         """
-        Add a refresh token to the blacklist.
+        Add a refresh token to the Redis blacklist.
+
+        The key expires after 8 days (refresh token lifetime + 1 day).
 
         :param token: Refresh token to invalidate
         :return: None
         """
-        _refresh_token_blacklist.add(token)
+        try:
+            _get_redis().setex(
+                f"blacklist:{token}", _BLACKLIST_TTL, "1"
+            )
+        except redis_lib.RedisError:
+            pass
 
     @staticmethod
     def is_blacklisted(token: str) -> bool:
         """
         Check whether a refresh token has been invalidated.
 
+        Returns False on Redis connection errors to avoid blocking
+        legitimate logins when Redis is temporarily unavailable.
+
         :param token: Refresh token to check
         :return: True if token is blacklisted
         """
-        return token in _refresh_token_blacklist
+        try:
+            return _get_redis().exists(f"blacklist:{token}") == 1
+        except redis_lib.RedisError:
+            return False
