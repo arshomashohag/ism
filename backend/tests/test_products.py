@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_tenant_db
 from app.main import app
 from app.schemas.auth import CurrentUser
 from app.services.auth import TokenService
@@ -217,7 +217,7 @@ def _make_client(db: MagicMock) -> AsyncClient:
     :param db: Mock database session
     :return: AsyncClient wired to the FastAPI app
     """
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_tenant_db] = lambda: db
     app.dependency_overrides[get_current_user] = _admin_context
     transport = ASGITransport(app=app)
     return AsyncClient(transport=transport, base_url="http://test")
