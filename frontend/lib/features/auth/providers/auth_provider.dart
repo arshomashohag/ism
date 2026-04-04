@@ -19,20 +19,35 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     return repo.loadFromStorage();
   }
 
-  /// Login with [email], [password], and [tenantSlug].
+  /// Login with [email] and [password].
   ///
   /// Updates state to authenticated on success or rethrows on failure.
-  Future<void> login(
-    String email,
-    String password,
-    String tenantSlug,
-  ) async {
+  Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() {
-      return ref
-          .read(authRepositoryProvider)
-          .login(email, password, tenantSlug);
-    });
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).login(email, password),
+    );
+  }
+
+  /// Register a new account with [shopName], [adminName],
+  /// [email], and [password].
+  ///
+  /// Updates state to authenticated on success or rethrows on failure.
+  Future<void> register({
+    required String shopName,
+    required String adminName,
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).register(
+            shopName: shopName,
+            adminName: adminName,
+            email: email,
+            password: password,
+          ),
+    );
   }
 
   /// Logout the current user.
