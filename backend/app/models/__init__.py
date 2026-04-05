@@ -2,6 +2,7 @@
 
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.super_admin import SuperAdmin
 from app.models.category import Category
 from app.models.inventory import Inventory
 from app.models.payment import Payment
@@ -28,4 +29,5 @@ __all__ = [
     "AuditLog",
     "SyncChangelog",
     "SyncConflict",
+    "SuperAdmin",
 ]
