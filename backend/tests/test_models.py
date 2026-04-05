@@ -27,12 +27,13 @@ EXPECTED_TABLES = {
     "audit_log",
     "sync_changelog",
     "sync_conflicts",
+    "super_admins",
 }
 
 
 def test_all_tables_registered() -> None:
     """
-    Verify all 12 tables are registered in Base.metadata.
+    Verify all 13 tables are registered in Base.metadata.
 
     :return: None
     """
