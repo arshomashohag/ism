@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     :ivar redis_url: Redis connection URL for token blacklist
     :ivar admin_api_key: Static secret for X-Admin-Key header
     :ivar pgbouncer_url: PgBouncer connection URL (optional)
+    :ivar webauthn_rp_id: WebAuthn Relying Party domain
+    :ivar webauthn_rp_name: WebAuthn Relying Party display name
+    :ivar aws_region: AWS region for ECS/RDS/CloudWatch clients
+    :ivar ecs_cluster_name: ECS cluster name for health metrics
+    :ivar rds_instance_id: RDS instance identifier for CloudWatch
     """
 
     database_url: str = (
@@ -74,6 +79,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     admin_api_key: str = "dev-admin-key"
     pgbouncer_url: str = ""
+
+    webauthn_rp_id: str = "localhost"
+    webauthn_rp_name: str = "IMS Super Admin"
+
+    aws_region: str = "ap-southeast-1"
+    ecs_cluster_name: str = "ims-dev"
+    rds_instance_id: str = "ims-dev"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
