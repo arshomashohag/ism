@@ -138,8 +138,17 @@ resource "aws_cloudfront_distribution" "frontend" {
 }
 
 # ── WAF Web ACL — restrict /sadmin/* to VPN CIDR ─────────────
+# Only created when vpn_cidr is set to a specific CIDR (not null).
+# Leave vpn_cidr unset in dev to skip WAF and allow unrestricted
+# access to /sadmin/* (protected by the super admin JWT instead).
+
+locals {
+  waf_enabled = var.vpn_cidr != null
+}
 
 resource "aws_wafv2_ip_set" "vpn" {
+  count = local.waf_enabled ? 1 : 0
+
   name               = "${local.name_prefix}-vpn-ip-set"
   scope              = "REGIONAL"
   ip_address_version = "IPV4"
@@ -149,6 +158,8 @@ resource "aws_wafv2_ip_set" "vpn" {
 }
 
 resource "aws_wafv2_web_acl" "sadmin" {
+  count = local.waf_enabled ? 1 : 0
+
   name  = "${local.name_prefix}-sadmin-waf"
   scope = "REGIONAL"
 
@@ -183,7 +194,7 @@ resource "aws_wafv2_web_acl" "sadmin" {
           not_statement {
             statement {
               ip_set_reference_statement {
-                arn = aws_wafv2_ip_set.vpn.arn
+                arn = aws_wafv2_ip_set.vpn[0].arn
               }
             }
           }
@@ -208,8 +219,10 @@ resource "aws_wafv2_web_acl" "sadmin" {
 }
 
 resource "aws_wafv2_web_acl_association" "alb" {
+  count = local.waf_enabled ? 1 : 0
+
   resource_arn = aws_lb.main.arn
-  web_acl_arn  = aws_wafv2_web_acl.sadmin.arn
+  web_acl_arn  = aws_wafv2_web_acl.sadmin[0].arn
 }
 
 # ── S3 Bucket Policy for CloudFront OAC ──────────────────────

@@ -91,7 +91,7 @@ variable "api_certificate_arn" {
 }
 
 variable "vpn_cidr" {
-  description = "CIDR block of the office/VPN that may access /sadmin/*"
+  description = "CIDR block of the office/VPN that may access /sadmin/*. Leave null to skip WAF (dev only)."
   type        = string
-  default     = "0.0.0.0/0"
+  default     = null
 }
