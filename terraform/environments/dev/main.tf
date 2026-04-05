@@ -70,6 +70,7 @@ module "gateway" {
   api_domain           = var.api_domain
   ui_certificate_arn   = var.ui_certificate_arn
   api_certificate_arn  = var.api_certificate_arn
+  vpn_cidr             = var.vpn_cidr
 }
 
 # ── Compute (ECS Fargate) ─────────────────────────────────────

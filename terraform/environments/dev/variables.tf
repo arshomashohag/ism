@@ -89,3 +89,9 @@ variable "api_certificate_arn" {
   description = "ACM certificate ARN for the API domain (from root account, us-east-1)"
   type        = string
 }
+
+variable "vpn_cidr" {
+  description = "CIDR block of the office/VPN that may access /sadmin/*"
+  type        = string
+  default     = "0.0.0.0/0"
+}

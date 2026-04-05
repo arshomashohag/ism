@@ -137,6 +137,81 @@ resource "aws_cloudfront_distribution" "frontend" {
   tags = { Name = "${local.name_prefix}-frontend-cdn" }
 }
 
+# ── WAF Web ACL — restrict /sadmin/* to VPN CIDR ─────────────
+
+resource "aws_wafv2_ip_set" "vpn" {
+  name               = "${local.name_prefix}-vpn-ip-set"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+  addresses          = [var.vpn_cidr]
+
+  tags = { Name = "${local.name_prefix}-vpn-ip-set" }
+}
+
+resource "aws_wafv2_web_acl" "sadmin" {
+  name  = "${local.name_prefix}-sadmin-waf"
+  scope = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  rule {
+    name     = "block-sadmin-non-vpn"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      and_statement {
+        statement {
+          byte_match_statement {
+            search_string         = "/sadmin"
+            positional_constraint = "STARTS_WITH"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "NONE"
+            }
+          }
+        }
+        statement {
+          not_statement {
+            statement {
+              ip_set_reference_statement {
+                arn = aws_wafv2_ip_set.vpn.arn
+              }
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BlockSadminNonVpn"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.name_prefix}-sadmin-waf"
+    sampled_requests_enabled   = true
+  }
+
+  tags = { Name = "${local.name_prefix}-sadmin-waf" }
+}
+
+resource "aws_wafv2_web_acl_association" "alb" {
+  resource_arn = aws_lb.main.arn
+  web_acl_arn  = aws_wafv2_web_acl.sadmin.arn
+}
+
 # ── S3 Bucket Policy for CloudFront OAC ──────────────────────
 
 data "aws_iam_policy_document" "frontend_bucket" {
