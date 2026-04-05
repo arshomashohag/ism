@@ -23,6 +23,11 @@ import 'features/sales/presentation/invoice_screen.dart';
 import 'features/sales/presentation/pos_screen.dart';
 import 'features/sales/presentation/sales_history_screen.dart';
 import 'features/analytics/presentation/dashboard_screen.dart';
+import 'features/super_admin/presentation/audit_log_screen.dart';
+import 'features/super_admin/presentation/health_dashboard_screen.dart';
+import 'features/super_admin/presentation/super_admin_login_screen.dart';
+import 'features/super_admin/presentation/tenant_management_screen.dart';
+import 'features/super_admin/providers/super_admin_provider.dart';
 import 'features/users/presentation/users_screen.dart';
 
 Future<void> main() async {
@@ -64,6 +69,22 @@ class _ImsAppState extends ConsumerState<ImsApp> {
         GoRoute(
           path: '/register',
           builder: (_, __) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin',
+          builder: (_, __) => const SuperAdminLoginScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/health',
+          builder: (_, __) => const HealthDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/tenants',
+          builder: (_, __) => const TenantManagementScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/audit-log',
+          builder: (_, __) => const AuditLogScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) =>
@@ -129,6 +150,16 @@ class _ImsAppState extends ConsumerState<ImsApp> {
   }
 
   String? _redirect(BuildContext context, GoRouterState state) {
+    final loc = state.matchedLocation;
+
+    if (loc.startsWith('/sadmin')) {
+      final sadminAuth = ref.read(superAdminAuthProvider);
+      if (sadminAuth.isLoading) return null;
+      final isLoggedIn = sadminAuth.valueOrNull != null;
+      if (!isLoggedIn && loc != '/sadmin') return '/sadmin';
+      return null;
+    }
+
     final authAsync = ref.read(authProvider);
     if (authAsync.isLoading) return null;
 
@@ -138,7 +169,6 @@ class _ImsAppState extends ConsumerState<ImsApp> {
     }
 
     final isAuthenticated = authStatus == AuthStatus.authenticated;
-    final loc = state.matchedLocation;
     final isPublic =
         loc == '/' || loc == '/login' || loc == '/register';
 
