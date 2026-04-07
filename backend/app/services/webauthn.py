@@ -160,9 +160,6 @@ class WebAuthnService:
         public_key = base64.b64decode(
             stored_credential["public_key"]
         )
-        credential_id = base64.b64decode(
-            stored_credential["credential_id"]
-        )
         sign_count = stored_credential.get("sign_count", 0)
 
         try:

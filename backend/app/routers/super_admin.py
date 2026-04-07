@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from sqlalchemy import func, text
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -350,9 +350,6 @@ def health(
                 cluster=cluster, tasks=task_arns
             ).get("tasks", [])
             for task in described:
-                container = (
-                    task.get("containers", [{}])[0]
-                )
                 ecs_tasks.append(
                     EcsTaskInfo(
                         task_arn=task.get("taskArn", ""),
