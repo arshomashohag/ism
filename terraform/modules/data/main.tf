@@ -2,7 +2,21 @@ locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
-# ── Random password for RDS master user ───────────────────────
+# ── Random RDS credentials ────────────────────────────────────
+
+resource "random_string" "db_name" {
+  length  = 8
+  upper   = false
+  special = false
+  numeric = false
+}
+
+resource "random_string" "db_username" {
+  length  = 12
+  upper   = false
+  special = false
+  numeric = false
+}
 
 resource "random_password" "db" {
   length           = 32
@@ -26,8 +40,9 @@ resource "aws_db_parameter_group" "postgres16" {
   family = "postgres16"
 
   parameter {
-    name  = "shared_preload_libraries"
-    value = "pg_stat_statements"
+    name         = "shared_preload_libraries"
+    value        = "pg_stat_statements"
+    apply_method = "pending-reboot"
   }
 
   tags = { Name = "${local.name_prefix}-postgres16" }
@@ -41,8 +56,8 @@ resource "aws_db_instance" "main" {
   engine_version = "16.3"
   instance_class = var.db_instance_class
 
-  db_name  = var.db_name
-  username = var.db_username
+  db_name  = "db${random_string.db_name.result}"
+  username = "u${random_string.db_username.result}"
   password = random_password.db.result
 
   allocated_storage     = var.db_allocated_storage
@@ -79,7 +94,13 @@ resource "aws_secretsmanager_secret" "db_url" {
 resource "aws_secretsmanager_secret_version" "db_url" {
   secret_id = aws_secretsmanager_secret.db_url.id
   secret_string = jsonencode({
-    url = "postgresql+asyncpg://${var.db_username}:${random_password.db.result}@${aws_db_instance.main.address}:5432/${var.db_name}"
+    url      = "postgresql+psycopg2://u${random_string.db_username.result}:${random_password.db.result}@${aws_db_instance.main.address}:5432/db${random_string.db_name.result}"
+    sync_url = "postgresql+psycopg2://u${random_string.db_username.result}:${random_password.db.result}@${aws_db_instance.main.address}:5432/db${random_string.db_name.result}"
+    host     = aws_db_instance.main.address
+    port     = 5432
+    db_name  = "db${random_string.db_name.result}"
+    username = "u${random_string.db_username.result}"
+    password = random_password.db.result
   })
 }
 

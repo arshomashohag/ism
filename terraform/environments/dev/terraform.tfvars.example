@@ -8,8 +8,6 @@ project_name = "ims"
 vpc_cidr = "10.0.0.0/16"
 
 # RDS
-db_name                  = "ims"
-db_username              = "ims_admin"
 db_instance_class        = "db.t4g.micro"
 db_allocated_storage     = 20
 db_backup_retention_days = 7

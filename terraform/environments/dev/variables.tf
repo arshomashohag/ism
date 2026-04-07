@@ -5,9 +5,9 @@ variable "aws_region" {
 }
 
 variable "environment" {
-  description = "Deployment environment name (dev / staging / prod)"
+  description = "Deployment environment name (development / staging / production)"
   type        = string
-  default     = "dev"
+  default     = "development"
 }
 
 variable "project_name" {
@@ -23,18 +23,6 @@ variable "vpc_cidr" {
 }
 
 # ── RDS ───────────────────────────────────────────────────────
-
-variable "db_name" {
-  description = "PostgreSQL database name"
-  type        = string
-  default     = "ims"
-}
-
-variable "db_username" {
-  description = "PostgreSQL master username"
-  type        = string
-  default     = "ims_admin"
-}
 
 variable "db_instance_class" {
   description = "RDS instance class"
@@ -78,4 +66,32 @@ variable "image_tag" {
   description = "Backend Docker image tag to deploy"
   type        = string
   default     = "latest"
+}
+
+variable "ui_domain" {
+  description = "Custom domain for the Flutter web app"
+  type        = string
+  default     = "imsdev.carewarebd.com"
+}
+
+variable "api_domain" {
+  description = "Custom domain for the backend API"
+  type        = string
+  default     = "imsdevapi.carewarebd.com"
+}
+
+variable "ui_certificate_arn" {
+  description = "ACM certificate ARN for the UI domain (from root account, us-east-1)"
+  type        = string
+}
+
+variable "api_certificate_arn" {
+  description = "ACM certificate ARN for the API domain (from root account, us-east-1)"
+  type        = string
+}
+
+variable "vpn_cidr" {
+  description = "CIDR block of the office/VPN that may access /sadmin/*. Leave null to skip WAF (dev only)."
+  type        = string
+  default     = null
 }

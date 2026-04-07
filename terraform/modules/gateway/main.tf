@@ -40,12 +40,29 @@ resource "aws_lb_target_group" "backend" {
   tags = { Name = "${local.name_prefix}-backend-tg" }
 }
 
-# ── ALB Listener ──────────────────────────────────────────────
+# ── ALB Listeners ─────────────────────────────────────────────
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.api_certificate_arn
 
   default_action {
     type             = "forward"
@@ -74,6 +91,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
+  aliases             = [var.ui_domain]
 
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
@@ -111,10 +129,100 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = var.ui_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = { Name = "${local.name_prefix}-frontend-cdn" }
+}
+
+# ── WAF Web ACL — restrict /sadmin/* to VPN CIDR ─────────────
+# Only created when vpn_cidr is set to a specific CIDR (not null).
+# Leave vpn_cidr unset in dev to skip WAF and allow unrestricted
+# access to /sadmin/* (protected by the super admin JWT instead).
+
+locals {
+  waf_enabled = var.vpn_cidr != null
+}
+
+resource "aws_wafv2_ip_set" "vpn" {
+  count = local.waf_enabled ? 1 : 0
+
+  name               = "${local.name_prefix}-vpn-ip-set"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+  addresses          = [var.vpn_cidr]
+
+  tags = { Name = "${local.name_prefix}-vpn-ip-set" }
+}
+
+resource "aws_wafv2_web_acl" "sadmin" {
+  count = local.waf_enabled ? 1 : 0
+
+  name  = "${local.name_prefix}-sadmin-waf"
+  scope = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  rule {
+    name     = "block-sadmin-non-vpn"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      and_statement {
+        statement {
+          byte_match_statement {
+            search_string         = "/sadmin"
+            positional_constraint = "STARTS_WITH"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "NONE"
+            }
+          }
+        }
+        statement {
+          not_statement {
+            statement {
+              ip_set_reference_statement {
+                arn = aws_wafv2_ip_set.vpn[0].arn
+              }
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BlockSadminNonVpn"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.name_prefix}-sadmin-waf"
+    sampled_requests_enabled   = true
+  }
+
+  tags = { Name = "${local.name_prefix}-sadmin-waf" }
+}
+
+resource "aws_wafv2_web_acl_association" "alb" {
+  count = local.waf_enabled ? 1 : 0
+
+  resource_arn = aws_lb.main.arn
+  web_acl_arn  = aws_wafv2_web_acl.sadmin[0].arn
 }
 
 # ── S3 Bucket Policy for CloudFront OAC ──────────────────────

@@ -29,7 +29,7 @@ class TopProductsChart extends StatelessWidget {
           child: Text(
             'No sales data',
             style: tt.bodyMedium?.copyWith(
-              color: cs.onSurface.withOpacity(0.5),
+              color: cs.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -76,7 +76,7 @@ class TopProductsChart extends StatelessWidget {
                 ? (maxRev * 1.2) / 4
                 : 1,
             getDrawingHorizontalLine: (_) => FlLine(
-              color: cs.outline.withOpacity(0.2),
+              color: cs.outline.withValues(alpha: 0.2),
               strokeWidth: 1,
             ),
           ),
@@ -89,7 +89,7 @@ class TopProductsChart extends StatelessWidget {
                   _compact(value),
                   style: tt.labelSmall?.copyWith(
                     color: cs.onSurface
-                        .withOpacity(0.55),
+                        .withValues(alpha: 0.55),
                   ),
                 ),
               ),
@@ -120,7 +120,7 @@ class TopProductsChart extends StatelessWidget {
                       short,
                       style: tt.labelSmall?.copyWith(
                         color: cs.onSurface
-                            .withOpacity(0.55),
+                            .withValues(alpha: 0.55),
                       ),
                       textAlign: TextAlign.center,
                     ),

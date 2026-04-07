@@ -121,7 +121,7 @@ class _InventoryListScreenState
               color: Theme.of(context)
                   .colorScheme
                   .onSurface
-                  .withOpacity(0.3),
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -133,7 +133,7 @@ class _InventoryListScreenState
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                   ),
             ),
           ],
@@ -217,7 +217,7 @@ class _Header extends StatelessWidget {
                     style:
                         theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                     ),
                   ),
               ],
@@ -301,7 +301,7 @@ class _WarehouseDropdown extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.3),
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
         ),
       ),
       child: DropdownButtonHideUnderline(
@@ -421,7 +421,7 @@ class _InventoryCard extends StatelessWidget {
                   Text(
                     'reorder @ ${entry.reorderPoint}',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withOpacity(0.45),
+                      color: cs.onSurface.withValues(alpha: 0.45),
                     ),
                   ),
                 ],
@@ -465,7 +465,7 @@ class _SmallChip extends StatelessWidget {
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: textColor ??
-                  cs.onSurface.withOpacity(0.65),
+                  cs.onSurface.withValues(alpha: 0.65),
             ),
       ),
     );

@@ -11,7 +11,9 @@ import 'core/layout/app_shell.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/register_screen.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/home/presentation/home_screen.dart';
 import 'features/inventory/presentation/inventory_list_screen.dart';
 import 'features/inventory/presentation/transfer_screen.dart';
 import 'features/products/presentation/product_detail_screen.dart';
@@ -21,6 +23,11 @@ import 'features/sales/presentation/invoice_screen.dart';
 import 'features/sales/presentation/pos_screen.dart';
 import 'features/sales/presentation/sales_history_screen.dart';
 import 'features/analytics/presentation/dashboard_screen.dart';
+import 'features/super_admin/presentation/audit_log_screen.dart';
+import 'features/super_admin/presentation/health_dashboard_screen.dart';
+import 'features/super_admin/presentation/super_admin_login_screen.dart';
+import 'features/super_admin/presentation/tenant_management_screen.dart';
+import 'features/super_admin/providers/super_admin_provider.dart';
 import 'features/users/presentation/users_screen.dart';
 
 Future<void> main() async {
@@ -47,13 +54,37 @@ class _ImsAppState extends ConsumerState<ImsApp> {
   void initState() {
     super.initState();
     _router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/',
       refreshListenable: _routerKey,
       redirect: _redirect,
       routes: [
         GoRoute(
+          path: '/',
+          builder: (_, __) => const HomeScreen(),
+        ),
+        GoRoute(
           path: '/login',
           builder: (_, __) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (_, __) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin',
+          builder: (_, __) => const SuperAdminLoginScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/health',
+          builder: (_, __) => const HealthDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/tenants',
+          builder: (_, __) => const TenantManagementScreen(),
+        ),
+        GoRoute(
+          path: '/sadmin/audit-log',
+          builder: (_, __) => const AuditLogScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) =>
@@ -119,26 +150,39 @@ class _ImsAppState extends ConsumerState<ImsApp> {
   }
 
   String? _redirect(BuildContext context, GoRouterState state) {
+    final loc = state.matchedLocation;
+
+    if (loc.startsWith('/sadmin')) {
+      final sadminAuth = ref.read(superAdminAuthProvider);
+      if (sadminAuth.isLoading) return null;
+      final isLoggedIn = sadminAuth.valueOrNull != null;
+      if (!isLoggedIn && loc != '/sadmin') return '/sadmin';
+      return null;
+    }
+
     final authAsync = ref.read(authProvider);
     if (authAsync.isLoading) return null;
 
-    final isAuthenticated =
-        authAsync.valueOrNull?.status == AuthStatus.authenticated;
-    final isLoggingIn = state.matchedLocation == '/login';
+    final authStatus = authAsync.valueOrNull?.status;
+    if (authStatus == null || authStatus == AuthStatus.unknown) {
+      return null;
+    }
 
-    if (!isAuthenticated && !isLoggingIn) return '/login';
-    if (isAuthenticated && isLoggingIn) {
+    final isAuthenticated = authStatus == AuthStatus.authenticated;
+    final isPublic =
+        loc == '/' || loc == '/login' || loc == '/register';
+
+    if (!isAuthenticated && !isPublic) return '/';
+    if (isAuthenticated && isPublic) {
       final role = authAsync.valueOrNull?.userRole;
       return role == 'admin' ? '/dashboard' : '/products';
     }
 
     final auth = authAsync.valueOrNull;
-    if (state.matchedLocation.startsWith('/dashboard') &&
-        auth?.userRole != 'admin') {
+    if (loc.startsWith('/dashboard') && auth?.userRole != 'admin') {
       return '/products';
     }
-    if (state.matchedLocation.startsWith('/users') &&
-        auth?.userRole != 'admin') {
+    if (loc.startsWith('/users') && auth?.userRole != 'admin') {
       return '/sales';
     }
     return null;

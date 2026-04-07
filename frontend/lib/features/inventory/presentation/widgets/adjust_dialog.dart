@@ -194,7 +194,7 @@ class _InfoRow extends StatelessWidget {
             '$label: ',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface
-                  .withOpacity(0.55),
+                  .withValues(alpha: 0.55),
             ),
           ),
           Expanded(

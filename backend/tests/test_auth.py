@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.dependencies import get_db
+from app.dependencies import get_admin_db
 from app.main import app
 from app.schemas.auth import CurrentUser
 from app.services.auth import PasswordService, TokenService
@@ -142,7 +142,7 @@ async def test_register_success(client: AsyncClient) -> None:
         or setattr(obj, "tenant_id", uuid.uuid4())
     )
 
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -176,7 +176,7 @@ async def test_register_duplicate_slug(
     tenant = _make_tenant("Existing Shop")
     db = _make_db(query_result=tenant)
 
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -234,7 +234,7 @@ async def test_login_success(client: AsyncClient) -> None:
     )
     db = _make_db(query_result=user)
 
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -265,7 +265,7 @@ async def test_login_wrong_password(
     user = _make_user(tenant_id=tenant.id, password="correctpass")
     db = _make_db(query_result=user)
 
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -291,7 +291,7 @@ async def test_login_unknown_email(
     """
     db = _make_db(query_result=None)
 
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -322,7 +322,7 @@ async def test_refresh_tokens_success(
     )
 
     db = _make_db(query_result=user)
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.post(
@@ -357,7 +357,7 @@ async def test_refresh_rejects_used_token(
     )
 
     db = _make_db(query_result=user)
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         await c.post(
@@ -407,7 +407,7 @@ async def test_logout_blacklists_token(
     )
 
     db = _make_db(query_result=user)
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         logout_resp = await c.post(
@@ -463,7 +463,7 @@ async def test_protected_endpoint_with_valid_token(
     db_user = user
     db_user.created_at = datetime.now(timezone.utc)
     db = _make_db(query_result=db_user)
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.get(
@@ -513,7 +513,7 @@ async def test_expired_access_token_rejected(
         )
 
     db = _make_db(query_result=user)
-    app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_admin_db] = lambda: db
 
     async with client as c:
         response = await c.get(

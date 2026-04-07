@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, require_role
+from app.dependencies import get_tenant_db, require_role
 from app.models.user import User
 from app.schemas.auth import CurrentUser, UserResponse
 from app.schemas.users import UserCreate, UserListResponse, UserUpdate
@@ -36,7 +36,7 @@ def list_users(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     current_user: CurrentUser = Depends(require_role("admin")),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> UserListResponse:
     """
     Return a paginated list of all users for the tenant.
@@ -80,7 +80,7 @@ def list_users(
 def create_user(
     body: UserCreate,
     current_user: CurrentUser = Depends(require_role("admin")),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> UserResponse:
     """
     Create a new user within the tenant.
@@ -136,7 +136,7 @@ def update_user(
     user_id: uuid.UUID,
     body: UserUpdate,
     current_user: CurrentUser = Depends(require_role("admin")),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> UserResponse:
     """
     Partially update a user.
@@ -190,7 +190,7 @@ def update_user(
 def delete_user(
     user_id: uuid.UUID,
     current_user: CurrentUser = Depends(require_role("admin")),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> None:
     """
     Soft-delete a user by setting is_active=False.

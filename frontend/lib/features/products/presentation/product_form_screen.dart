@@ -389,7 +389,7 @@ class _FormCard extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                     letterSpacing: 0.5,
                   ),
             ),
@@ -465,7 +465,7 @@ class _CategoryDropdown extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<String?>(
-        value: selectedId,
+        initialValue: selectedId,
         decoration: InputDecoration(
           labelText: 'Category',
           border: OutlineInputBorder(

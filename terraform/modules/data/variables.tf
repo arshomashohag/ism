@@ -23,18 +23,6 @@ variable "rds_sg_id" {
   type        = string
 }
 
-variable "db_name" {
-  description = "Name of the PostgreSQL database"
-  type        = string
-  default     = "ims"
-}
-
-variable "db_username" {
-  description = "Master username for RDS"
-  type        = string
-  default     = "ims_admin"
-}
-
 variable "db_instance_class" {
   description = "RDS instance class"
   type        = string

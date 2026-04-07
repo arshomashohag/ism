@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, require_role
+from app.dependencies import get_current_user, get_tenant_db, require_role
 from app.models.category import Category
 from app.models.inventory import Inventory
 from app.models.product import Product
@@ -147,7 +147,7 @@ def list_products(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> ProductListResponse:
     """
     Return a paginated list of active products for the tenant.
@@ -206,7 +206,7 @@ def create_product(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> ProductResponse:
     """
     Create a new product for the tenant.
@@ -265,7 +265,7 @@ def create_product(
 def get_product(
     product_id: uuid.UUID,
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> ProductResponse:
     """
     Return a single product by ID.
@@ -300,7 +300,7 @@ def update_product(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> ProductResponse:
     """
     Partially update a product.
@@ -374,7 +374,7 @@ def delete_product(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> None:
     """
     Soft-delete a product by setting is_active=False.

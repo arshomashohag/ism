@@ -4,10 +4,10 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
+import '../storage/token_storage.dart';
 
 const _kAccessToken = 'access_token';
 const _kRefreshToken = 'refresh_token';
@@ -50,7 +50,7 @@ class ApiClient {
   /// Returns the shared [ApiClient] instance.
   static ApiClient get instance => _instance;
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TokenStorage _storage = TokenStorage.instance;
   final http.Client _http = http.Client();
   bool _isRefreshing = false;
 
@@ -67,7 +67,7 @@ class ApiClient {
   }
 
   Future<Map<String, String>> _buildHeaders({String? token}) async {
-    final t = token ?? await _storage.read(key: _kAccessToken);
+    final t = token ?? await _storage.read(_kAccessToken);
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -97,7 +97,7 @@ class ApiClient {
   Future<http.Response> _send(
     Future<http.Response> Function(String? token) call,
   ) async {
-    final token = await _storage.read(key: _kAccessToken);
+    final token = await _storage.read(_kAccessToken);
     var response = await call(token);
 
     if (response.statusCode != 401 || _isRefreshing) {
@@ -106,7 +106,7 @@ class ApiClient {
 
     _isRefreshing = true;
     try {
-      final refreshToken = await _storage.read(key: _kRefreshToken);
+      final refreshToken = await _storage.read(_kRefreshToken);
       if (refreshToken == null) return response;
 
       final refreshResp = await _http.post(
@@ -125,8 +125,8 @@ class ApiClient {
       final newAccess = data['access_token'] as String;
       final newRefresh = data['refresh_token'] as String;
       await Future.wait([
-        _storage.write(key: _kAccessToken, value: newAccess),
-        _storage.write(key: _kRefreshToken, value: newRefresh),
+        _storage.write(_kAccessToken, newAccess),
+        _storage.write(_kRefreshToken, newRefresh),
       ]);
       return call(newAccess);
     } finally {
@@ -163,6 +163,23 @@ class ApiClient {
       ),
     );
     _log('POST', path, response.statusCode);
+    _assertOk(response);
+    return _decode(response);
+  }
+
+  /// GET without auth (used for public endpoints like tenant list).
+  Future<dynamic> getPublic(
+    String path, {
+    Map<String, dynamic>? query,
+  }) async {
+    final response = await _http.get(
+      _uri(path, query),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+    _log('GET', path, response.statusCode);
     _assertOk(response);
     return _decode(response);
   }

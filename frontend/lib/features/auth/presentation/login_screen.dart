@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/network/api_client.dart';
 import '../providers/auth_provider.dart';
 
-/// Email/password login form.
+/// Email and password sign-in form.
 class LoginScreen extends ConsumerStatefulWidget {
   /// Creates a [LoginScreen].
   const LoginScreen({super.key});
@@ -36,15 +36,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _errorMessage = null);
 
     try {
-      await ref
-          .read(authProvider.notifier)
-          .login(_emailCtrl.text.trim(), _passwordCtrl.text);
-      // Router redirect in main.dart handles navigation to /products
-      // once authProvider state becomes authenticated.
+      await ref.read(authProvider.notifier).login(
+            _emailCtrl.text.trim(),
+            _passwordCtrl.text,
+          );
     } on ApiException catch (e) {
       setState(() {
         _errorMessage = e.statusCode == 401
-            ? 'Invalid email or password.'
+            ? 'Incorrect email or password.'
             : e.message;
       });
     } catch (e) {
@@ -54,10 +53,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final isLoading = authState.isLoading;
+    final isLoading = ref.watch(authProvider).isLoading;
+    final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -69,31 +74,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'IMS',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineLarge
+                    'Sign In',
+                    style: theme.textTheme.headlineMedium
                         ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Inventory Management System',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    'Welcome back',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
                   TextFormField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    decoration:
-                        const InputDecoration(labelText: 'Email'),
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
                         return 'Email is required';
                       }
                       if (!v.contains('@')) {
-                        return 'Enter a valid email';
+                        return 'Enter a valid email address';
                       }
                       return null;
                     },
@@ -104,10 +111,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     obscureText: _obscure,
                     decoration: InputDecoration(
                       labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscure
-                            ? Icons.visibility_off
-                            : Icons.visibility),
+                        icon: Icon(
+                          _obscure
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         onPressed: () =>
                             setState(() => _obscure = !_obscure),
                       ),
@@ -124,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       _errorMessage!,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                        color: theme.colorScheme.error,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -142,6 +152,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           )
                         : const Text('Sign In'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => context.go('/register'),
+                    child:
+                        const Text("Don't have an account? Create one"),
                   ),
                 ],
               ),

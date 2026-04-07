@@ -149,7 +149,7 @@ class _ProductsListScreenState
               color: Theme.of(context)
                   .colorScheme
                   .onSurface
-                  .withOpacity(0.3),
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -158,7 +158,7 @@ class _ProductsListScreenState
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                   ),
             ),
             const SizedBox(height: 8),
@@ -236,7 +236,7 @@ class _Header extends StatelessWidget {
                     '$totalCount items',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                     ),
                   ),
               ],
@@ -306,14 +306,14 @@ class _SearchFilterBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(
                     color: theme.colorScheme.outline
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(
                     color: theme.colorScheme.outline
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -332,7 +332,7 @@ class _SearchFilterBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color:
-                      theme.colorScheme.outline.withOpacity(0.3),
+                      theme.colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
               child: DropdownButtonHideUnderline(

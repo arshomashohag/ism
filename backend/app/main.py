@@ -9,12 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.middleware.logging import RequestLoggingMiddleware
+from app.routers import admin as admin_router
 from app.routers import analytics as analytics_router
 from app.routers import auth as auth_router
 from app.routers import categories as categories_router
 from app.routers import inventory as inventory_router
 from app.routers import products as products_router
 from app.routers import sales as sales_router
+from app.routers import super_admin as super_admin_router
 from app.routers import users as users_router
 
 logger = logging.getLogger("ims.main")
@@ -54,12 +56,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(admin_router.router)
 app.include_router(analytics_router.router)
 app.include_router(auth_router.router)
 app.include_router(categories_router.router)
 app.include_router(products_router.router)
 app.include_router(inventory_router.router)
 app.include_router(sales_router.router)
+app.include_router(super_admin_router.router)
 app.include_router(users_router.router)
 
 

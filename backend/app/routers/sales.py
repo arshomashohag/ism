@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, require_role
+from app.dependencies import get_current_user, get_tenant_db, require_role
 from app.models.inventory import Inventory
 from app.models.payment import Payment
 from app.models.product import Product
@@ -17,13 +17,13 @@ from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.auth import CurrentUser
 from app.schemas.sales import (
+    PaymentResponse,
     SaleCreate,
+    SaleLineItemResponse,
     SaleListItem,
     SaleListResponse,
     SaleResponse,
     SalesSummary,
-    SaleLineItemResponse,
-    PaymentResponse,
     TopProduct,
 )
 from app.services.audit import AuditService
@@ -184,7 +184,7 @@ def _deduct_inventory(
 def create_sale(
     body: SaleCreate,
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SaleResponse:
     """
     Create a new completed sale atomically.
@@ -350,7 +350,7 @@ def get_summary(
         description="End of range (ISO 8601). Defaults to now.",
     ),
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SalesSummary:
     """
     Return aggregated sales summary for a date range.
@@ -442,7 +442,7 @@ def list_sales(
     date_from: datetime | None = Query(default=None),
     date_to: datetime | None = Query(default=None),
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SaleListResponse:
     """
     Return a paginated list of sales for the tenant.
@@ -529,7 +529,7 @@ def list_sales(
 def get_sale(
     sale_id: uuid.UUID,
     current_user: CurrentUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SaleResponse:
     """
     Return a single sale by ID.
@@ -576,7 +576,7 @@ def void_sale(
     current_user: CurrentUser = Depends(
         require_role("admin", "manager")
     ),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
 ) -> SaleResponse:
     """
     Void a completed sale and restore inventory.

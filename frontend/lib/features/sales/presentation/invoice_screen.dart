@@ -9,8 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-
+import '../../../core/platform/printing/printing_service.dart';
 import '../domain/sale.dart';
 import '../providers/sales_provider.dart';
 
@@ -87,8 +86,10 @@ class InvoiceScreen extends ConsumerWidget {
 
   Future<void> _print(
       BuildContext context, Sale sale) async {
-    await Printing.layoutPdf(
-      onLayout: (_) => _buildPdf(sale),
+    final pdfBytes = await _buildPdf(sale);
+    await PrintingService.instance.printDocument(
+      pdfBytes: pdfBytes,
+      name: sale.invoiceNumber,
     );
   }
 
@@ -364,7 +365,6 @@ class _InvoiceHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final fmt = DateFormat('dd MMM yyyy  HH:mm');
 
     return Card(
@@ -457,7 +457,7 @@ class _MetaRow extends StatelessWidget {
           Icon(
             icon,
             size: 14,
-            color: cs.onSurface.withOpacity(0.55),
+            color: cs.onSurface.withValues(alpha: 0.55),
           ),
           const SizedBox(width: 6),
           Text(
@@ -467,7 +467,7 @@ class _MetaRow extends StatelessWidget {
                 .bodySmall
                 ?.copyWith(
                   color:
-                      cs.onSurface.withOpacity(0.7),
+                      cs.onSurface.withValues(alpha: 0.7),
                 ),
           ),
         ],
@@ -505,7 +505,7 @@ class _LineItemsCard extends StatelessWidget {
                           .labelSmall
                           ?.copyWith(
                             color: cs.onSurface
-                                .withOpacity(0.55),
+                                .withValues(alpha: 0.55),
                           ),
                     ),
                   ),
@@ -516,7 +516,7 @@ class _LineItemsCard extends StatelessWidget {
                         .labelSmall
                         ?.copyWith(
                           color: cs.onSurface
-                              .withOpacity(0.55),
+                              .withValues(alpha: 0.55),
                         ),
                   ),
                   const SizedBox(width: 16),
@@ -530,7 +530,7 @@ class _LineItemsCard extends StatelessWidget {
                           .labelSmall
                           ?.copyWith(
                             color: cs.onSurface
-                                .withOpacity(0.55),
+                                .withValues(alpha: 0.55),
                           ),
                     ),
                   ),
@@ -546,7 +546,7 @@ class _LineItemsCard extends StatelessWidget {
                   height: 1,
                   indent: 16,
                   endIndent: 16,
-                  color: cs.outline.withOpacity(0.12),
+                  color: cs.outline.withValues(alpha: 0.12),
                 ),
             ],
           ],
@@ -593,7 +593,7 @@ class _LineItemRow extends StatelessWidget {
                       .bodySmall
                       ?.copyWith(
                         color: cs.onSurface
-                            .withOpacity(0.55),
+                            .withValues(alpha: 0.55),
                       ),
                 ),
               ],
@@ -642,7 +642,7 @@ class _TotalsCard extends StatelessWidget {
                   '\$${sale.subtotal.toStringAsFixed(2)}',
             ),
             Divider(
-              color: cs.outline.withOpacity(0.12),
+              color: cs.outline.withValues(alpha: 0.12),
               height: 16,
             ),
             _TRow(
@@ -658,7 +658,7 @@ class _TotalsCard extends StatelessWidget {
                 valueColor: Colors.green.shade600,
               ),
             Divider(
-              color: cs.outline.withOpacity(0.12),
+              color: cs.outline.withValues(alpha: 0.12),
               height: 16,
             ),
             _TRow(
@@ -709,7 +709,7 @@ class _TRow extends StatelessWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withOpacity(0.6),
+                    .withValues(alpha: 0.6),
               ),
         ),
         const Spacer(),
@@ -743,7 +743,7 @@ class _PaymentCard extends StatelessWidget {
                   ?.copyWith(
                     fontWeight: FontWeight.bold,
                     color:
-                        cs.onSurface.withOpacity(0.55),
+                        cs.onSurface.withValues(alpha: 0.55),
                     letterSpacing: 0.5,
                   ),
             ),

@@ -42,7 +42,9 @@ class _TransferScreenState
     if (!_formKey.currentState!.validate()) return;
     if (_productId == null ||
         _fromWarehouseId == null ||
-        _toWarehouseId == null) return;
+        _toWarehouseId == null) {
+      return;
+    }
 
     setState(() {
       _saving = true;
@@ -273,7 +275,7 @@ class _SectionCard extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                   ),
             ),
             const SizedBox(height: 14),
@@ -299,7 +301,7 @@ class _ProductDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: selectedId,
+      initialValue: selectedId,
       decoration: const InputDecoration(
         labelText: 'Product *',
       ),
@@ -338,7 +340,7 @@ class _WarehouseField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: selectedId,
+      initialValue: selectedId,
       decoration: InputDecoration(labelText: label),
       items: warehouses
           .map(

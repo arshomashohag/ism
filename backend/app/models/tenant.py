@@ -17,6 +17,7 @@ class Tenant(Base):
     :ivar id: Primary key UUID
     :ivar name: Shop / business name
     :ivar slug: URL-safe unique identifier
+    :ivar schema_name: PostgreSQL schema name for this tenant
     :ivar plan: Subscription plan tier
     :ivar is_active: Whether the tenant account is active
     :ivar created_at: Record creation timestamp
@@ -35,6 +36,9 @@ class Tenant(Base):
     )
     slug: Mapped[str] = mapped_column(
         String(100), nullable=False, unique=True
+    )
+    schema_name: Mapped[str] = mapped_column(
+        String(100), nullable=False, server_default=""
     )
     plan: Mapped[str] = mapped_column(
         String(50), nullable=False, server_default="starter"

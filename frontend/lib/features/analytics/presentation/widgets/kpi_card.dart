@@ -69,7 +69,7 @@ class KpiCard extends StatelessWidget {
                     label,
                     style: tt.bodySmall?.copyWith(
                       color: cs.onSurface
-                          .withOpacity(0.6),
+                          .withValues(alpha: 0.6),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -109,7 +109,7 @@ class KpiCard extends StatelessWidget {
                 subtitle!,
                 style: tt.bodySmall?.copyWith(
                   color:
-                      cs.onSurface.withOpacity(0.5),
+                      cs.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ],

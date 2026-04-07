@@ -32,18 +32,18 @@ class IsarService {
   /// Opens the Isar database with the registered collection schemas.
   ///
   /// No-op on web (Isar requires native file system access).
+  /// No-op when no collections are registered yet.
   /// Safe to call multiple times — subsequent calls are no-ops.
   Future<void> open() async {
     if (kIsWeb || _isar != null) return;
 
-    final dir = await getApplicationDocumentsDirectory();
+    // No collections registered yet — skip opening.
+    // Add schemas here when offline sync is implemented (Step 10+).
+    const schemas = <CollectionSchema<dynamic>>[];
+    if (schemas.isEmpty) return;
 
-    // Collections are added here as domain models are introduced
-    // in Step 2+ (e.g. ProductSchema, SaleSchema, etc.)
-    _isar = await Isar.open(
-      [],
-      directory: dir.path,
-    );
+    final dir = await getApplicationDocumentsDirectory();
+    _isar = await Isar.open(schemas, directory: dir.path);
   }
 
   /// Closes the database. Primarily used in tests.

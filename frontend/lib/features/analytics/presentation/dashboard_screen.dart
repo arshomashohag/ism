@@ -281,7 +281,7 @@ class _InventoryHealthPanel extends StatelessWidget {
               '${data.totalSkus} total SKUs',
               style: tt.bodySmall?.copyWith(
                 color:
-                    cs.onSurface.withOpacity(0.5),
+                    cs.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -294,7 +294,7 @@ class _InventoryHealthPanel extends StatelessWidget {
               'All products are well-stocked.',
               style: tt.bodyMedium?.copyWith(
                 color:
-                    cs.onSurface.withOpacity(0.6),
+                    cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
           )
@@ -374,7 +374,7 @@ class _StatChip extends StatelessWidget {
           fontSize: 12,
         ),
       ),
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide.none,
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,

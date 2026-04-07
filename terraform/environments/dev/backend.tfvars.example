@@ -1,0 +1,10 @@
+# Copy to backend.tfvars and fill in your values, then run:
+#   terraform init -backend-config=backend.tfvars
+#
+# NEVER commit backend.tfvars — it contains account-specific details.
+
+bucket         = "ims-terraform-state-<your-account-id>"
+key            = "terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "ims-terraform-locks"
+encrypt        = true

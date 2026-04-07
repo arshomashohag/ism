@@ -24,9 +24,9 @@ class DateRangeSelector extends ConsumerWidget {
       spacing: 8,
       runSpacing: 4,
       children: [
-        _QuickChip(label: '7d', days: 7),
-        _QuickChip(label: '30d', days: 30),
-        _QuickChip(label: '90d', days: 90),
+        const _QuickChip(label: '7d', days: 7),
+        const _QuickChip(label: '30d', days: 30),
+        const _QuickChip(label: '90d', days: 90),
         ActionChip(
           avatar: const Icon(
               Icons.date_range_outlined, size: 16),

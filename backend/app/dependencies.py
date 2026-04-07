@@ -1,19 +1,26 @@
 """FastAPI dependency injection — DB session and auth dependencies."""
 
 import uuid
+from functools import lru_cache
 from typing import Generator
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 from app.schemas.auth import CurrentUser
 from app.services.auth import TokenService
 
+_db_url = (
+    settings.pgbouncer_url
+    if settings.pgbouncer_url
+    else settings.database_url
+)
+
 engine = create_engine(
-    settings.database_url,
+    _db_url,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
@@ -28,20 +35,41 @@ SessionLocal = sessionmaker(
 _bearer_scheme = HTTPBearer()
 
 
-def get_db() -> Generator[Session, None, None]:
+@lru_cache(maxsize=256)
+def _resolve_schema(tenant_id: str) -> str:
     """
-    Yield a scoped SQLAlchemy session for a single request.
+    Resolve the PostgreSQL schema name for a tenant.
 
-    The session is automatically closed after the request
-    regardless of whether an exception was raised.
+    Queries public.tenants once per unique tenant_id and caches
+    the result in an LRU cache to avoid repeated DB round-trips.
 
-    :return: SQLAlchemy Session generator
+    :param tenant_id: Tenant UUID as string
+    :return: Schema name (slug) for the tenant
+    :raises HTTPException: 403 if tenant not found or inactive
     """
     db = SessionLocal()
     try:
-        yield db
+        row = db.execute(
+            text(
+                "SELECT slug, is_active FROM tenants "
+                "WHERE id = :tid"
+            ),
+            {"tid": tenant_id},
+        ).fetchone()
     finally:
         db.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant not found",
+        )
+    if not row.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant account is suspended",
+        )
+    return row.slug
 
 
 def get_current_user(
@@ -73,6 +101,47 @@ def get_current_user(
         role=payload["role"],
         email=payload["email"],
     )
+
+
+def get_tenant_db(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Generator[Session, None, None]:
+    """
+    Yield a SQLAlchemy session scoped to the current tenant's schema.
+
+    Sets the PostgreSQL search_path to the tenant's schema for the
+    duration of the request, ensuring schema-level isolation between
+    tenants.
+
+    :param current_user: Authenticated user with tenant_id
+    :return: SQLAlchemy Session generator
+    :raises HTTPException: 403 if tenant is unknown or suspended
+    """
+    schema = _resolve_schema(str(current_user.tenant_id))
+    db = SessionLocal()
+    try:
+        db.execute(
+            text(f'SET LOCAL search_path TO "{schema}", public')
+        )
+        yield db
+    finally:
+        db.close()
+
+
+def get_admin_db() -> Generator[Session, None, None]:
+    """
+    Yield an unscoped SQLAlchemy session for the public schema.
+
+    Used by admin and auth endpoints that query public.tenants and
+    public.users directly without tenant-level isolation.
+
+    :return: SQLAlchemy Session generator
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def require_role(*allowed_roles: str):
@@ -114,3 +183,20 @@ def require_role(*allowed_roles: str):
         return current_user
 
     return _check_role
+
+
+def require_admin_key(
+    x_admin_key: str = Header(alias="X-Admin-Key"),
+) -> None:
+    """
+    Validate the static X-Admin-Key header for admin endpoints.
+
+    :param x_admin_key: Value of the X-Admin-Key request header
+    :return: None
+    :raises HTTPException: 403 if the key does not match settings
+    """
+    if x_admin_key != settings.admin_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid admin API key",
+        )

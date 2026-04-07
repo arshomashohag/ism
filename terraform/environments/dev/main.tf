@@ -12,15 +12,7 @@ terraform {
     }
   }
 
-  backend "s3" {
-    # Configure via CLI: terraform init -backend-config="bucket=<state-bucket>"
-    # or set in terraform.tfvars / environment variables.
-    # bucket         = "ims-terraform-state-<account-id>"
-    # key            = "dev/terraform.tfstate"
-    # region         = "us-east-1"
-    # dynamodb_table = "ims-terraform-locks"
-    # encrypt        = true
-  }
+  backend "s3" {}
 }
 
 provider "aws" {
@@ -57,8 +49,6 @@ module "data" {
   private_subnet_ids = module.networking.private_subnet_ids
   rds_sg_id          = module.networking.rds_sg_id
 
-  db_name                  = var.db_name
-  db_username              = var.db_username
   db_instance_class        = var.db_instance_class
   db_allocated_storage     = var.db_allocated_storage
   db_backup_retention_days = var.db_backup_retention_days
@@ -76,6 +66,11 @@ module "gateway" {
   alb_sg_id            = module.networking.alb_sg_id
   frontend_bucket_arn  = module.data.frontend_bucket_arn
   frontend_bucket_name = module.data.frontend_bucket_name
+  ui_domain            = var.ui_domain
+  api_domain           = var.api_domain
+  ui_certificate_arn   = var.ui_certificate_arn
+  api_certificate_arn  = var.api_certificate_arn
+  vpn_cidr             = var.vpn_cidr
 }
 
 # ── Compute (ECS Fargate) ─────────────────────────────────────
