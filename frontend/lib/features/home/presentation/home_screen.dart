@@ -25,13 +25,13 @@ class HomeScreen extends StatelessWidget {
     return const Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(child: HeroSection()),
-          const SliverToBoxAdapter(child: FeaturesSection()),
-          const SliverToBoxAdapter(child: HowItWorksSection()),
-          const SliverToBoxAdapter(child: BenefitsSection()),
-          const SliverToBoxAdapter(child: TestimonialsSection()),
-          const SliverToBoxAdapter(child: CtaSection()),
-          const SliverToBoxAdapter(child: FooterSection()),
+          SliverToBoxAdapter(child: HeroSection()),
+          SliverToBoxAdapter(child: FeaturesSection()),
+          SliverToBoxAdapter(child: HowItWorksSection()),
+          SliverToBoxAdapter(child: BenefitsSection()),
+          SliverToBoxAdapter(child: TestimonialsSection()),
+          SliverToBoxAdapter(child: CtaSection()),
+          SliverToBoxAdapter(child: FooterSection()),
         ],
       ),
     );

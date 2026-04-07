@@ -389,7 +389,7 @@ class _ProvisionDialogState extends State<_ProvisionDialog> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _plan,
+                initialValue: _plan,
                 decoration:
                     const InputDecoration(labelText: 'Plan'),
                 items: ['starter', 'standard', 'premium']

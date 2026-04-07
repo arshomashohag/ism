@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/super_admin_repository.dart';
 import '../providers/super_admin_provider.dart';
 
 /// Screen for super admin authentication via WebAuthn hardware key.

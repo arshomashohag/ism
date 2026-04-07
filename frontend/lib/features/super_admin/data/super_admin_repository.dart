@@ -91,14 +91,6 @@ class SuperAdminRepository {
     return json['access_token'] as String;
   }
 
-  Future<Map<String, String>> _sadminHeaders() async {
-    final token = await _storage.read(_kSuperAdminToken);
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
 
   /// Fetch platform health metrics.
   Future<PlatformHealth> getHealth() async {

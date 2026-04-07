@@ -63,10 +63,10 @@ class _DesktopLayout extends StatelessWidget {
       children: [
         Expanded(child: _HeroText(cs: cs, tt: tt)),
         const SizedBox(width: 48),
-        Expanded(
+        const Expanded(
           child: Align(
             alignment: Alignment.centerRight,
-            child: const DashboardMockup(isDesktop: true),
+            child: DashboardMockup(isDesktop: true),
           ),
         ),
       ],

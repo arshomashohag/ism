@@ -272,7 +272,7 @@ class _ActionBadge extends StatelessWidget {
     final color = _colors[action] ?? Colors.grey;
     return Chip(
       label: Text(action),
-      backgroundColor: color.withOpacity(0.15),
+      backgroundColor: color.withValues(alpha: 0.15),
       labelStyle: TextStyle(color: color, fontSize: 11),
     );
   }
